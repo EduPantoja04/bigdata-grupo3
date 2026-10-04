@@ -1,0 +1,24 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secretos locales. config/hadoop-hive.env se versiona a propósito:
+# son las credenciales de ejemplo publicadas por big-data-europe/docker-hive.
+.env
+.env.*
+!.env.example
+
+# Datos generados si se montan volúmenes dentro de este directorio
+data/
+volumes/
+tmp/
+*.log
+
+# Clon de trabajo del repositorio analizado
+upstream/
+
+# IDE
+.idea/
+.vscode/
+*.swp
