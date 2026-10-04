@@ -66,3 +66,65 @@ Datos tomados de la API de GitHub y del commit clonado para la práctica (`502fa
 | Lenguajes del repositorio | Shell (entrypoint, arranque y Makefile), Dockerfile, XML y properties de configuración. Hive y Hadoop son Java |
 
 Hive no trae un clúster YARN propio. El archivo `hadoop-hive.env` incluye variables `YARN_CONF_*`, pero `docker-compose.yml` no define ResourceManager, NodeManager ni HistoryServer. Esas variables vienen del estilo de configuración de docker-hadoop y en este despliegue no tienen un proceso que las use.
+
+## 3. Arquitectura
+
+El archivo ejecutado es el `docker-compose.yml` de la raíz. Define **6 servicios**. Compose no les asigna `container_name`, así que Docker los nombra `docker-hive-<servicio>-1`. La red es la red bridge por defecto del proyecto (`docker-hive_default`): los servicios se resuelven por su nombre.
+
+No hay un clúster YARN. El procesamiento SQL entra por HiveServer2 o por Presto, y el almacenamiento de archivos es un HDFS de un NameNode y un DataNode.
+
+![Arquitectura de docker-hive](docs/arquitectura.svg)
+
+### Contenedores
+
+| Contenedor | Imagen | Función | Puertos publicados | Volumen |
+| --- | --- | --- | --- | --- |
+| namenode | `bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8` | Metadatos de HDFS y UI del NameNode. El sistema de archivos por defecto es `hdfs://namenode:8020` | 50070 | `namenode` → `/hadoop/dfs/name` |
+| datanode | `bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8` | Guarda los bloques de HDFS | 50075 | `datanode` → `/hadoop/dfs/data` |
+| hive-metastore-postgresql | `bde2020/hive-metastore-postgresql:2.3.0` | Base del catálogo de Hive (esquemas y tablas, no los archivos) | 5432 solo dentro de la red | Ninguno |
+| hive-metastore | `bde2020/hive:2.3.2-postgresql-metastore` | Servicio Thrift del metastore. El comando del compose reemplaza el arranque por `hive --service metastore` | 9083 | Ninguno |
+| hive-server | `bde2020/hive:2.3.2-postgresql-metastore` | HiveServer2. Al arrancar crea `/tmp` y `/user/hive/warehouse` en HDFS | 10000 | Ninguno |
+| presto-coordinator | `shawnzhu/prestodb:0.181` | Coordinador Presto para consultar el catálogo Hive por SQL | 8080 | Ninguno |
+
+### Dependencias
+
+El compose no usa `depends_on`. El orden lo impone `SERVICE_PRECONDITION`, y `entrypoint.sh` espera con `nc -z` hasta 100 intentos de 5 segundos:
+
+| Servicio | Espera a |
+| --- | --- |
+| datanode | `namenode:50070` |
+| hive-metastore | `namenode:50070`, `datanode:50075`, `hive-metastore-postgresql:5432` |
+| hive-server | `hive-metastore:9083` |
+| presto-coordinator | Nada. Puede quedar arriba aunque Hive todavía no responda |
+| hive-metastore-postgresql | Nada |
+
+En `hive-server` el compose declara `HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore/metastore`. Ese prefijo no lo lee `entrypoint.sh`: solo convierte `HIVE_SITE_CONF_*` en propiedades de `hive-site.xml`. La URL que sí queda configurada es la de `hadoop-hive.env`, `jdbc:postgresql://hive-metastore-postgresql/metastore`, donde `hive-metastore-postgresql` es el contenedor de PostgreSQL y `hive-metastore` es el servicio Thrift.
+
+### Variables de entorno
+
+`hadoop-hive.env` se inyecta en NameNode, DataNode, HiveServer2 y metastore. `entrypoint.sh` convierte el prefijo y los guiones bajos en propiedades XML:
+
+- `CORE_CONF_fs_defaultFS` → `fs.defaultFS=hdfs://namenode:8020`
+- `HDFS_CONF_dfs_permissions_enabled=false` deja HDFS sin control de permisos, útil para la prueba local
+- `HDFS_CONF_dfs_webhdfs_enabled=true`
+- `HIVE_SITE_CONF_javax_jdo_option_ConnectionUserName=hive` y la contraseña `hive` (valores de ejemplo del repositorio público)
+- `HIVE_SITE_CONF_hive_metastore_uris=thrift://hive-metastore:9083`
+
+`conf/hive-site.xml` se entrega vacío. La configuración real se escribe al iniciar el contenedor.
+
+### Archivos de configuración
+
+| Archivo | Rol |
+| --- | --- |
+| `docker-compose.yml` | Servicios, imágenes, puertos y volúmenes |
+| `hadoop-hive.env` | Propiedades de Hadoop y Hive |
+| `Dockerfile` | Instala Hive 2.3.2 y el JDBC de PostgreSQL sobre la imagen Hadoop |
+| `entrypoint.sh` | Genera los XML y espera las precondiciones |
+| `startup.sh` | Prepara directorios HDFS y lanza HiveServer2 |
+| `conf/` | `hive-site.xml` vacío, `hive-env.sh` y log4j de Hive |
+
+Las copias usadas en este informe están en [`config/`](config/).
+
+### Persistencia
+
+Solo HDFS persiste, en los volúmenes nombrados `namenode` y `datanode`. PostgreSQL no tiene volumen: si se recrea ese contenedor, el catálogo de tablas se pierde aunque los archivos sigan en HDFS.

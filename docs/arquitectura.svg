@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760">
+  <rect width="1180" height="760" fill="#f7f5f2"/>
+  <text x="40" y="46" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1c1917">Arquitectura de big-data-europe/docker-hive</text>
+  <text x="40" y="72" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#57534e">Red bridge de Compose (nombre DNS = nombre del servicio). Volúmenes nombrados solo para HDFS.</text>
+
+  <rect x="40" y="100" width="1100" height="620" rx="16" fill="#fff" stroke="#d6d3d1"/>
+  <text x="64" y="132" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#78716c">red: docker-hive_default</text>
+
+  <rect x="80" y="160" width="250" height="92" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
+  <text x="100" y="192" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">Cliente SQL</text>
+  <text x="100" y="214" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Beeline :10000</text>
+  <text x="100" y="234" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Presto CLI :8080</text>
+
+  <rect x="430" y="156" width="280" height="100" rx="10" fill="#efe7f6" stroke="#6d28d9"/>
+  <text x="450" y="186" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">presto-coordinator</text>
+  <text x="450" y="208" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">shawnzhu/prestodb:0.181</text>
+  <text x="450" y="230" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Puerto publicado 8080</text>
+
+  <rect x="820" y="156" width="280" height="100" rx="10" fill="#e8f1fb" stroke="#1d4ed8"/>
+  <text x="840" y="186" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">hive-server</text>
+  <text x="840" y="208" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">bde2020/hive:2.3.2</text>
+  <text x="840" y="230" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">HiveServer2 en 10000</text>
+
+  <path d="M330 206 H430" stroke="#57534e" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M330 190 H780 V206 H820" stroke="#57534e" stroke-width="1.6" fill="none"/>
+
+  <rect x="430" y="320" width="280" height="112" rx="10" fill="#e8f1fb" stroke="#1d4ed8"/>
+  <text x="450" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">hive-metastore</text>
+  <text x="450" y="374" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">misma imagen Hive 2.3.2</text>
+  <text x="450" y="394" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Thrift 9083</text>
+  <text x="450" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">espera NameNode, DataNode y Postgres</text>
+
+  <rect x="820" y="320" width="280" height="112" rx="10" fill="#f8efe4" stroke="#b45309"/>
+  <text x="840" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">hive-metastore-postgresql</text>
+  <text x="840" y="374" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">bde2020/hive-metastore-postgresql:2.3.0</text>
+  <text x="840" y="394" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Puerto interno 5432</text>
+  <text x="840" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">sin volumen: el catálogo no persiste</text>
+
+  <path d="M960 256 V320" stroke="#57534e" stroke-width="1.6" fill="none"/>
+  <path d="M570 256 V320" stroke="#57534e" stroke-width="1.6" fill="none"/>
+  <path d="M710 376 H820" stroke="#57534e" stroke-width="1.6" fill="none"/>
+
+  <rect x="180" y="500" width="300" height="150" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
+  <text x="200" y="532" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">namenode</text>
+  <text x="200" y="554" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">hadoop-namenode 2.7.4-java8</text>
+  <text x="200" y="574" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">UI 50070 · RPC 8020</text>
+  <text x="200" y="594" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">metadatos HDFS</text>
+  <text x="200" y="624" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#3f6f54">volumen: namenode</text>
+
+  <rect x="620" y="500" width="300" height="150" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
+  <text x="640" y="532" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">datanode</text>
+  <text x="640" y="554" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">hadoop-datanode 2.7.4-java8</text>
+  <text x="640" y="574" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">UI 50075</text>
+  <text x="640" y="594" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">bloques HDFS</text>
+  <text x="640" y="624" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#3f6f54">volumen: datanode</text>
+
+  <path d="M480 575 H620" stroke="#3f6f54" stroke-width="1.8" fill="none"/>
+  <path d="M330 500 V470 H570 V432" stroke="#3f6f54" stroke-width="1.6" fill="none"/>
+  <text x="500" y="490" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#57534e">hdfs://namenode:8020</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#57534e"/>
+    </marker>
+  </defs>
+</svg>
