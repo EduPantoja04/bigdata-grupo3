@@ -1,0 +1,8 @@
+﻿=== ls ===
+Found 1 items
+-rw-r--r--   3 root supergroup         52 2026-10-04 22:43 /user/grupo3/prueba/ventas-grupo3.txt
+=== cat ===
+id,producto,cantidad
+1,cafe,10
+2,cacao,4
+3,panela,7

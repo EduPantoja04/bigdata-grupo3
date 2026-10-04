@@ -1,0 +1,7 @@
+﻿NAMES                                     IMAGE                                             STATUS                   PORTS
+docker-hive-presto-coordinator-1          shawnzhu/prestodb:0.181                           Up About a minute        0.0.0.0:8081->8080/tcp, [::]:8081->8080/tcp
+docker-hive-namenode-1                    bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8   Up 5 minutes (healthy)   0.0.0.0:50070->50070/tcp, [::]:50070->50070/tcp
+docker-hive-hive-metastore-1              bde2020/hive:2.3.2-postgresql-metastore           Up 5 minutes             0.0.0.0:9083->9083/tcp, [::]:9083->9083/tcp
+docker-hive-hive-server-1                 bde2020/hive:2.3.2-postgresql-metastore           Up 5 minutes             0.0.0.0:10000->10000/tcp, [::]:10000->10000/tcp
+docker-hive-hive-metastore-postgresql-1   bde2020/hive-metastore-postgresql:2.3.0           Up 5 minutes             5432/tcp
+docker-hive-datanode-1                    bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8   Up 5 minutes (healthy)   0.0.0.0:50075->50075/tcp, [::]:50075->50075/tcp

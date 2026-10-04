@@ -128,3 +128,100 @@ Las copias usadas en este informe están en [`config/`](config/).
 ### Persistencia
 
 Solo HDFS persiste, en los volúmenes nombrados `namenode` y `datanode`. PostgreSQL no tiene volumen: si se recrea ese contenedor, el catálogo de tablas se pierde aunque los archivos sigan en HDFS.
+
+## 4. Comparación con docker-hadoop
+
+El referente de la guía es [big-data-europe/docker-hadoop](https://github.com/big-data-europe/docker-hadoop). Comparten organización e imágenes `bde2020`, pero el compose, las versiones y el propósito no son los mismos. `docker-hive` no es un cambio de nombre de ese repositorio.
+
+| Característica | docker-hadoop | docker-hive (este trabajo) |
+| --- | --- | --- |
+| Tecnología principal | Hadoop 3.2.1 (HDFS + YARN) | Hive 2.3.2 sobre Hadoop 2.7.4 |
+| Docker | Sí | Sí |
+| Docker Compose | Sí, `docker-compose.yml` en la raíz | Sí, `docker-compose.yml` en la raíz |
+| Número de contenedores | 5: namenode, datanode, resourcemanager, nodemanager, historyserver | 6: namenode, datanode, hive-server, hive-metastore, hive-metastore-postgresql, presto-coordinator |
+| Almacenamiento distribuido | HDFS. Volúmenes `hadoop_namenode`, `hadoop_datanode` y `hadoop_historyserver` | HDFS. Volúmenes `namenode` y `datanode`. Un solo DataNode |
+| Procesamiento distribuido | YARN: ResourceManager y NodeManager | No hay YARN. La consulta es SQL por HiveServer2 y, si se usa, Presto |
+| Interfaces web | El compose publica el NameNode en 9870 y el RPC en 9000. El README documenta además HistoryServer 8188, DataNode 9864, NodeManager 8042 y ResourceManager 8088 | NameNode 50070, DataNode 50075, Presto 8080. HiveServer2 es JDBC en 10000, no una UI web |
+| Persistencia | Tres volúmenes nombrados para NameNode, DataNode e historial de YARN | Dos volúmenes de HDFS. El catálogo de PostgreSQL no tiene volumen |
+| Complejidad de instalación | `docker compose up` y un `hadoop.env` | Igual de corta en comandos, con más servicios y una imagen extra de Presto. El stack es más viejo (Hadoop 2.7.4, Hive 2.3.2, Presto 0.181) |
+| Documentación | README con URLs de las UI y la convención `CORE_CONF` / `HDFS_CONF` / `YARN_CONF` | README breve. Remite a docker-hadoop para la configuración de Hadoop e incluye un ejemplo con Beeline |
+| Caso de uso | Clúster de ejemplo para almacenar en HDFS y ejecutar trabajos en YARN | Almacén de datos: tablas Hive sobre archivos en HDFS, con el catálogo en PostgreSQL |
+
+La diferencia de propósito es la que importa. docker-hadoop muestra el sistema de archivos y el gestor de recursos. docker-hive se apoya en HDFS para guardar archivos y añade el catálogo y el motor SQL. Por eso la prueba de este grupo hace las tres operaciones de HDFS que pide la guía y, además, una consulta Hive sobre ese mismo archivo.
+
+## 5. Implementación
+
+Ejecutado el 4 de octubre de 2026 en Windows, con Docker Engine 29.6.1 y Docker Compose v5.3.0. El clon quedó en `C:\Users\edupa\source\docker-hive`, commit `502fa269`.
+
+```text
+git clone https://github.com/big-data-europe/docker-hive.git
+cd docker-hive
+```
+
+El listado de archivos está en [evidencias/01-archivos.txt](evidencias/01-archivos.txt). Los archivos que definen el despliegue son `docker-compose.yml`, `hadoop-hive.env`, `Dockerfile`, `entrypoint.sh`, `startup.sh` y `conf/`.
+
+```text
+docker compose up -d
+docker ps
+```
+
+`docker compose up -d` creó la red `docker-hive_default`, los volúmenes `namenode` y `datanode`, y los seis contenedores. Presto no pudo publicar el puerto 8080 porque en este equipo lo usa el listener de Oracle (`TNSLSNR`). NameNode, DataNode, PostgreSQL, metastore y HiveServer2 sí quedaron en ejecución. Para no cambiar el compose original se agregó [config/docker-compose.override.yml](config/docker-compose.override.yml), que publica Presto en el host como `8081`. Con eso el sexto contenedor también arrancó.
+
+`docker ps` quedó en [evidencias/02-docker-ps.txt](evidencias/02-docker-ps.txt). La UI del NameNode respondió HTTP 200 en http://localhost:50070/dfshealth.html ([evidencias/05-namenode-ui.txt](evidencias/05-namenode-ui.txt)).
+
+En el log de `hive-server` se confirma la lectura real de la configuración: `javax.jdo.option.ConnectionURL=jdbc:postgresql://hive-metastore-postgresql/metastore`. El metastore anunció `Started the new metaserver on port [9083]` y HiveServer2 arrancó a las 22:39 UTC del mismo día.
+
+## 6. Prueba funcional
+
+La prueba obligatoria es de HDFS. El script [scripts/prueba-hdfs.sh](scripts/prueba-hdfs.sh) hace las tres operaciones dentro del NameNode:
+
+1. Crea el directorio `/user/grupo3/prueba`.
+2. Carga `ventas-grupo3.txt` (café, cacao y panela).
+3. Lista el directorio y lee el archivo con `hdfs dfs -cat`.
+
+Resultado guardado en [evidencias/03-prueba-hdfs.txt](evidencias/03-prueba-hdfs.txt):
+
+```text
+Found 1 items
+-rw-r--r--   3 root supergroup   52 2026-10-04 22:43 /user/grupo3/prueba/ventas-grupo3.txt
+id,producto,cantidad
+1,cafe,10
+2,cacao,4
+3,panela,7
+```
+
+El `3` de la primera columna es el factor de réplica que trae Hadoop por defecto. En este compose solo hay un DataNode, así que el archivo se lee bien, pero no hay tres copias físicas.
+
+Como la tecnología principal del repositorio es Hive, la segunda prueba crea una tabla externa sobre esa misma ruta y la consulta. No mueve el archivo: `LOAD DATA` lo sacaría de `/user/grupo3/prueba`. El script es [scripts/prueba-hive.sh](scripts/prueba-hive.sh) y el resultado está en [evidencias/04-prueba-hive.txt](evidencias/04-prueba-hive.txt): las tres filas vuelven con `id`, `producto` y `cantidad`.
+
+## 7. Cómo repetir la ejecución
+
+Desde PowerShell, con Docker Desktop encendido:
+
+```powershell
+.\scripts\desplegar.ps1
+.\scripts\prueba-hdfs.ps1
+.\scripts\prueba-hive.ps1
+```
+
+Para apagar el clúster sin borrar los volúmenes de HDFS:
+
+```powershell
+Set-Location "$env:USERPROFILE\source\docker-hive"
+docker compose stop
+```
+
+`docker compose down -v` sí borra los volúmenes `namenode` y `datanode`.
+
+## Estructura de este repositorio
+
+```text
+README.md
+.gitignore
+config/          compose, variables y el override local del puerto 8081
+docs/            diagrama de la arquitectura real
+scripts/         despliegue y pruebas
+evidencias/      salida de docker ps, HDFS y Hive
+```
+
+El `.gitignore` es propio de este informe. No usa una plantilla de lenguaje de GitHub: el repositorio no es una aplicación Java o Python, y una plantilla de ese tipo ignoraría archivos que sí hay que entregar. Ignora datos locales de HDFS, logs, secretos `.env` y el clon de trabajo.

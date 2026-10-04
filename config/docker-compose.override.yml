@@ -1,0 +1,7 @@
+# Ajuste local de este equipo. El compose original publica Presto en 8080,
+# pero ese puerto lo usa el listener de Oracle (TNSLSNR). El contenedor
+# sigue escuchando 8080 por dentro; en el host queda en 8081.
+services:
+  presto-coordinator:
+    ports: !override
+      - "8081:8080"

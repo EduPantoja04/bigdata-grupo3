@@ -1,0 +1,18 @@
+﻿Commit clonado: 502fa269fe1913737ecfa0ef6ea05adb48b33868
+
+
+Mode   Length Name                       
+----   ------ ----                       
+d-----        conf                       
+-a---- 6      .gitignore                 
+-a---- 289    docker-compose.override.yml
+-a---- 1368   docker-compose.yml         
+-a---- 1892   Dockerfile                 
+-a---- 4299   entrypoint.sh              
+-a---- 1693   hadoop-hive.env            
+-a---- 120    Makefile                   
+-a---- 1765   README.md                  
+-a---- 241    startup.sh                 
+
+
+
