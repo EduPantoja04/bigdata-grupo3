@@ -1,38 +1,8 @@
 # LG14 — Investigación y despliegue de un repositorio Big Data con Docker
 
-Grupo 3. Cuenta de entrega: [EduPantoja04](https://github.com/EduPantoja04).
+Grupo 3.
 
-Este repositorio documenta el análisis, el despliegue y la prueba funcional de un proyecto público de Big Data. No es un fork ni una copia renombrada de ese proyecto: el código que se ejecuta sigue viviendo en el repositorio original.
-
-## Registro del repositorio analizado
-
-| Campo | Valor |
-| --- | --- |
-| Estudiantes | Grupo 3 (completar nombres completos antes de enviarlo por Teams) |
-| Repositorio | docker-hive |
-| URL | https://github.com/big-data-europe/docker-hive |
-| Autor / organización | Big Data Europe |
-| Descripción | Entorno Docker Compose para Apache Hive 2.3.2 sobre HDFS, con metastore en PostgreSQL. |
-
-Texto listo para pegar en el registro del curso:
-
-```text
-Nombre de los estudiantes: Grupo 3
-Nombre del repositorio: docker-hive
-URL: https://github.com/big-data-europe/docker-hive
-Autor/organización: Big Data Europe
-Descripción en una línea: Entorno Docker Compose para Apache Hive 2.3.2 sobre HDFS, con metastore en PostgreSQL.
-```
-
-## Por qué este repositorio y no Trino
-
-[bitsondatadev/trino-getting-started](https://github.com/bitsondatadev/trino-getting-started) sí es Big Data y sí usa Docker Compose, pero no encaja bien con esta guía:
-
-- No hay un único `docker-compose.yml` en la raíz. Son varios tutoriales y hay que entrar a un subdirectorio.
-- La prueba obligatoria de la guía pide operaciones de HDFS: crear un directorio, cargar un archivo y consultarlo. Trino no almacena los datos; los consulta en otra fuente.
-- Parte de los tutoriales se movió a `community-tutorials/` y el propio README advierte que pueden estar desactualizados.
-
-`docker-hive` cumple las condiciones y deja una comparación real con [big-data-europe/docker-hadoop](https://github.com/big-data-europe/docker-hadoop). Son repositorios distintos: Hive reutiliza las imágenes Hadoop de esa organización, pero despliega un almacén SQL (HiveServer2, metastore y PostgreSQL) y no el clúster YARN del repositorio de referencia.
+Este repositorio documenta el análisis, el despliegue y la prueba funcional de un proyecto público de Big Data.
 
 ## 1. Información general
 
@@ -151,7 +121,7 @@ La diferencia de propósito es la que importa. docker-hadoop muestra el sistema 
 
 ## 5. Implementación
 
-Ejecutado el 4 de octubre de 2026 en Windows, con Docker Engine 29.6.1 y Docker Compose v5.3.0. El clon quedó en `C:\Users\edupa\source\docker-hive`, commit `502fa269`.
+Ejecutado el 4 de octubre de 2026 en Windows, con Docker Engine 29.6.1 y Docker Compose v5.3.0.
 
 ```text
 git clone https://github.com/big-data-europe/docker-hive.git
