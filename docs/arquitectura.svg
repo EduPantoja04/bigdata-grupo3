@@ -1,66 +1,135 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760">
-  <rect width="1180" height="760" fill="#f7f5f2"/>
-  <text x="40" y="46" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1c1917">Arquitectura de big-data-europe/docker-hive</text>
-  <text x="40" y="72" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#57534e">Red bridge de Compose (nombre DNS = nombre del servicio). Vol�menes nombrados solo para HDFS.</text>
-
-  <rect x="40" y="100" width="1100" height="620" rx="16" fill="#fff" stroke="#d6d3d1"/>
-  <text x="64" y="132" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#78716c">red: docker-hive_default</text>
-
-  <rect x="80" y="160" width="250" height="92" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
-  <text x="100" y="192" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">Cliente SQL</text>
-  <text x="100" y="214" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Beeline :10000</text>
-  <text x="100" y="234" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Presto CLI :8080</text>
-
-  <rect x="430" y="156" width="280" height="100" rx="10" fill="#efe7f6" stroke="#6d28d9"/>
-  <text x="450" y="186" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">presto-coordinator</text>
-  <text x="450" y="208" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">shawnzhu/prestodb:0.181</text>
-  <text x="450" y="230" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Puerto publicado 8080</text>
-
-  <rect x="820" y="156" width="280" height="100" rx="10" fill="#e8f1fb" stroke="#1d4ed8"/>
-  <text x="840" y="186" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">hive-server</text>
-  <text x="840" y="208" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">bde2020/hive:2.3.2</text>
-  <text x="840" y="230" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">HiveServer2 en 10000</text>
-
-  <path d="M330 206 H430" stroke="#57534e" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M330 190 H780 V206 H820" stroke="#57534e" stroke-width="1.6" fill="none"/>
-
-  <rect x="430" y="320" width="280" height="112" rx="10" fill="#e8f1fb" stroke="#1d4ed8"/>
-  <text x="450" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">hive-metastore</text>
-  <text x="450" y="374" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">misma imagen Hive 2.3.2</text>
-  <text x="450" y="394" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Thrift 9083</text>
-  <text x="450" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">espera NameNode, DataNode y Postgres</text>
-
-  <rect x="820" y="320" width="280" height="112" rx="10" fill="#f8efe4" stroke="#b45309"/>
-  <text x="840" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">hive-metastore-postgresql</text>
-  <text x="840" y="374" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">bde2020/hive-metastore-postgresql:2.3.0</text>
-  <text x="840" y="394" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">Puerto interno 5432</text>
-  <text x="840" y="414" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">sin volumen: el cat�logo no persiste</text>
-
-  <path d="M960 256 V320" stroke="#57534e" stroke-width="1.6" fill="none"/>
-  <path d="M570 256 V320" stroke="#57534e" stroke-width="1.6" fill="none"/>
-  <path d="M710 376 H820" stroke="#57534e" stroke-width="1.6" fill="none"/>
-
-  <rect x="180" y="500" width="300" height="150" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
-  <text x="200" y="532" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">namenode</text>
-  <text x="200" y="554" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">hadoop-namenode 2.7.4-java8</text>
-  <text x="200" y="574" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">UI 50070 � RPC 8020</text>
-  <text x="200" y="594" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">metadatos HDFS</text>
-  <text x="200" y="624" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#3f6f54">volumen: namenode</text>
-
-  <rect x="620" y="500" width="300" height="150" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
-  <text x="640" y="532" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1c1917">datanode</text>
-  <text x="640" y="554" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">hadoop-datanode 2.7.4-java8</text>
-  <text x="640" y="574" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">UI 50075</text>
-  <text x="640" y="594" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#44403c">bloques HDFS</text>
-  <text x="640" y="624" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#3f6f54">volumen: datanode</text>
-
-  <path d="M480 575 H620" stroke="#3f6f54" stroke-width="1.8" fill="none"/>
-  <path d="M330 500 V470 H570 V432" stroke="#3f6f54" stroke-width="1.6" fill="none"/>
-  <text x="500" y="490" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#57534e">hdfs://namenode:8020</text>
-
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="960" viewBox="0 0 1280 960">
+  <style>
+    text { font-family: "Segoe UI", Arial, sans-serif; fill: #1c1917; }
+    .t  { font-size: 15px; font-weight: 700; }
+    .s  { font-size: 13px; fill: #44403c; }
+    .l  { font-size: 12px; fill: #57534e; }
+    .lb { font-size: 12px; font-weight: 700; fill: #3f3f46; }
+    .ln { stroke: #57534e; stroke-width: 1.6; fill: none; marker-end: url(#a); }
+    .hd { stroke: #3f6f54; stroke-width: 1.8; fill: none; }
+    .hda { stroke: #3f6f54; stroke-width: 1.8; fill: none; marker-end: url(#ag); }
+    .vol { stroke: #78716c; stroke-width: 1.4; stroke-dasharray: 5 4; fill: none; }
+  </style>
   <defs>
-    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
-      <path d="M0,0 L8,3 L0,6 Z" fill="#57534e"/>
-    </marker>
+    <marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#57534e"/></marker>
+    <marker id="ag" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#3f6f54"/></marker>
   </defs>
+
+  <rect width="1280" height="960" fill="#f7f5f2"/>
+  <text x="40" y="40" style="font-size:22px;font-weight:700">Arquitectura real de big-data-europe/docker-hive (commit 502fa269)</text>
+  <text x="40" y="64" class="s">6 servicios de docker-compose.yml · red bridge docker-hive_default · DNS interno = nombre del servicio · flecha = conexión de red · punteado = volumen montado</text>
+
+  <!-- Equipo anfitrión -->
+  <rect x="40" y="84" width="1200" height="100" rx="14" fill="#fff" stroke="#a8a29e"/>
+  <text x="60" y="106" class="lb">Equipo anfitrión (Windows + Docker Desktop) · puertos publicados</text>
+  <rect x="70" y="116" width="250" height="56" rx="8" fill="#f5f5f4" stroke="#78716c"/>
+  <text x="88" y="140" class="t">Navegador</text>
+  <text x="88" y="160" class="s">UI web de HDFS</text>
+  <rect x="405" y="116" width="250" height="56" rx="8" fill="#f5f5f4" stroke="#78716c"/>
+  <text x="423" y="140" class="t">Presto CLI</text>
+  <text x="423" y="160" class="s">--catalog hive --schema default</text>
+  <rect x="845" y="116" width="250" height="56" rx="8" fill="#f5f5f4" stroke="#78716c"/>
+  <text x="863" y="140" class="t">Beeline / cliente JDBC</text>
+  <text x="863" y="160" class="s">jdbc:hive2://localhost:10000</text>
+
+  <!-- Red de Compose -->
+  <rect x="40" y="216" width="1200" height="620" rx="16" fill="#fff" stroke="#d6d3d1"/>
+  <text x="60" y="240" class="lb">red: docker-hive_default (bridge)</text>
+
+  <!-- Clientes hacia contenedores -->
+  <path class="ln" d="M195 172 V638"/>
+  <text x="203" y="262" class="l">:50070 NameNode UI</text>
+  <path class="ln" d="M530 172 V268"/>
+  <text x="538" y="204" class="l">:8080 (en nuestro equipo :8081)</text>
+  <path class="ln" d="M970 172 V268"/>
+  <text x="978" y="204" class="l">:10000 JDBC/Thrift</text>
+
+  <!-- presto-coordinator -->
+  <rect x="380" y="270" width="300" height="100" rx="10" fill="#efe7f6" stroke="#6d28d9"/>
+  <text x="398" y="298" class="t">presto-coordinator</text>
+  <text x="398" y="320" class="s">shawnzhu/prestodb:0.181</text>
+  <text x="398" y="340" class="s">Motor SQL distribuido, conector hive</text>
+  <text x="398" y="360" class="s">Sin SERVICE_PRECONDITION</text>
+
+  <!-- hive-server -->
+  <rect x="820" y="270" width="300" height="100" rx="10" fill="#e8f1fb" stroke="#1d4ed8"/>
+  <text x="838" y="298" class="t">hive-server (HiveServer2)</text>
+  <text x="838" y="320" class="s">bde2020/hive:2.3.2-postgresql-metastore</text>
+  <text x="838" y="340" class="s">startup.sh crea /tmp y /user/hive/warehouse</text>
+  <text x="838" y="360" class="s">Puerto 10000</text>
+
+  <!-- hive-metastore -->
+  <rect x="380" y="440" width="300" height="110" rx="10" fill="#e8f1fb" stroke="#1d4ed8"/>
+  <text x="398" y="468" class="t">hive-metastore</text>
+  <text x="398" y="490" class="s">misma imagen bde2020/hive:2.3.2</text>
+  <text x="398" y="510" class="s">command: hive --service metastore</text>
+  <text x="398" y="530" class="s">Servicio Thrift en 9083 (publicado)</text>
+
+  <!-- hive-metastore-postgresql -->
+  <rect x="820" y="440" width="300" height="110" rx="10" fill="#f8efe4" stroke="#b45309"/>
+  <text x="838" y="468" class="t">hive-metastore-postgresql</text>
+  <text x="838" y="490" class="s">bde2020/hive-metastore-postgresql:2.3.0</text>
+  <text x="838" y="510" class="s">BD "metastore", usuario hive · 5432 interno</text>
+  <text x="838" y="530" class="s" style="fill:#b45309;font-weight:700">Sin volumen: el catálogo no persiste</text>
+
+  <!-- Hive / Presto hacia el metastore y Postgres -->
+  <path class="ln" d="M880 370 V405 H640 V438"/>
+  <text x="700" y="398" class="l">Thrift :9083</text>
+  <path class="ln" d="M530 370 V438"/>
+  <text x="538" y="410" class="l">Thrift :9083</text>
+  <path class="ln" d="M680 495 H818"/>
+  <text x="694" y="487" class="l">JDBC :5432</text>
+
+  <!-- Bus HDFS -->
+  <path class="hd" d="M1120 300 H1150 V600 H290"/>
+  <path class="hd" d="M380 320 H340 V600"/>
+  <path class="hd" d="M530 550 V600"/>
+  <path class="hda" d="M290 600 V638"/>
+  <path class="hda" d="M770 600 V638"/>
+  <text x="560" y="592" class="l" style="fill:#3f6f54;font-weight:700">Clientes HDFS: metadatos en hdfs://namenode:8020, bloques en datanode:50010</text>
+
+  <!-- namenode -->
+  <rect x="140" y="640" width="300" height="140" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
+  <text x="158" y="668" class="t">namenode</text>
+  <text x="158" y="690" class="s">bde2020/hadoop-namenode</text>
+  <text x="158" y="708" class="s">:2.0.0-hadoop2.7.4-java8</text>
+  <text x="158" y="730" class="s">Metadatos HDFS · RPC 8020 interno</text>
+  <text x="158" y="750" class="s">UI web 50070 (publicado)</text>
+  <text x="158" y="770" class="s">CLUSTER_NAME=test</text>
+
+  <!-- datanode -->
+  <rect x="620" y="640" width="300" height="140" rx="10" fill="#e7f0ea" stroke="#3f6f54"/>
+  <text x="638" y="668" class="t">datanode</text>
+  <text x="638" y="690" class="s">bde2020/hadoop-datanode</text>
+  <text x="638" y="708" class="s">:2.0.0-hadoop2.7.4-java8</text>
+  <text x="638" y="730" class="s">Bloques HDFS · 50010 interno</text>
+  <text x="638" y="750" class="s">UI web 50075 (publicado)</text>
+  <text x="638" y="770" class="s">Un solo DataNode (réplica 3 sin cumplir)</text>
+
+  <path class="ln" d="M620 716 H442"/>
+  <text x="452" y="708" class="l">registro y heartbeats</text>
+  <text x="452" y="732" class="l">RPC :8020</text>
+
+  <!-- Orden de arranque -->
+  <rect x="950" y="640" width="270" height="180" rx="10" fill="#fafaf9" stroke="#a8a29e"/>
+  <text x="966" y="664" class="lb">Orden de arranque (SERVICE_PRECONDITION,</text>
+  <text x="966" y="680" class="lb">entrypoint.sh espera con nc -z, 100 × 5 s)</text>
+  <text x="966" y="706" class="s">1. namenode, postgresql, presto</text>
+  <text x="966" y="728" class="s">2. datanode &#8592; namenode:50070</text>
+  <text x="966" y="750" class="s">3. hive-metastore &#8592; namenode:50070,</text>
+  <text x="984" y="768" class="s">datanode:50075, postgresql:5432</text>
+  <text x="966" y="790" class="s">4. hive-server &#8592; hive-metastore:9083</text>
+  <text x="966" y="810" class="l">No se usa depends_on</text>
+
+  <!-- Volúmenes -->
+  <path class="vol" d="M290 780 V868"/>
+  <path class="vol" d="M770 780 V868"/>
+  <rect x="140" y="870" width="300" height="56" rx="8" fill="#f5f5f4" stroke="#78716c" stroke-dasharray="5 4"/>
+  <text x="158" y="894" class="t">volumen namenode</text>
+  <text x="158" y="914" class="s">&#8594; /hadoop/dfs/name</text>
+  <rect x="620" y="870" width="300" height="56" rx="8" fill="#f5f5f4" stroke="#78716c" stroke-dasharray="5 4"/>
+  <text x="638" y="894" class="t">volumen datanode</text>
+  <text x="638" y="914" class="s">&#8594; /hadoop/dfs/data</text>
+  <text x="950" y="894" class="l">hadoop-hive.env se inyecta en namenode,</text>
+  <text x="950" y="912" class="l">datanode, hive-server y hive-metastore</text>
 </svg>
