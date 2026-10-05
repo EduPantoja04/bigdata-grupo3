@@ -1,5 +1,6 @@
 ﻿param(
-    [string]$ComposeDir = (Join-Path $env:USERPROFILE "source\docker-hive")
+    [string]$ComposeDir = (Join-Path $env:USERPROFILE "source\docker-hive"),
+    [switch]$PrestoEn8081
 )
 
 $ErrorActionPreference = "Stop"
@@ -7,6 +8,10 @@ $ErrorActionPreference = "Stop"
 if (-not (Test-Path (Join-Path $ComposeDir "docker-compose.yml"))) {
     Write-Host "No está el clon. Clonando big-data-europe/docker-hive en $ComposeDir"
     git clone https://github.com/big-data-europe/docker-hive.git $ComposeDir
+}
+
+if ($PrestoEn8081) {
+    Copy-Item (Join-Path $PSScriptRoot "..\config\docker-compose.override.yml") $ComposeDir -Force
 }
 
 Set-Location $ComposeDir
