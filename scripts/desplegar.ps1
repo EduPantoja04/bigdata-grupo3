@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$ComposeDir = (Join-Path $env:USERPROFILE "source\docker-hive")
 )
 
