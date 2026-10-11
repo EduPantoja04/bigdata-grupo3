@@ -1,0 +1,11 @@
+Grupo 03 - LG14
+Evidencia: Volumenes Docker del cluster
+Comando: docker volume ls --filter name=hadoop
+Fecha: 2026-10-11 14:14:06 (UTC-4)
+----------------------------------------------------------------------
+DRIVER    VOLUME NAME
+local     hadoop-environment_hadoop_datanode1
+local     hadoop-environment_hadoop_datanode2
+local     hadoop-environment_hadoop_datanode3
+local     hadoop-environment_hadoop_historyserver
+local     hadoop-environment_hadoop_namenode

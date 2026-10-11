@@ -1,0 +1,7 @@
+Grupo 03 - LG14
+Evidencia: Prueba funcional: directorio y archivo en HDFS
+Comando: docker exec namenode hdfs dfs -ls -R /grupo03
+Fecha: 2026-10-11 14:14:14 (UTC-4)
+----------------------------------------------------------------------
+drwxr-xr-x   - root supergroup          0 2026-10-11 17:29 /grupo03/lg14
+-rw-r--r--   3 root supergroup        106 2026-10-11 17:29 /grupo03/lg14/registro_grupo03.txt

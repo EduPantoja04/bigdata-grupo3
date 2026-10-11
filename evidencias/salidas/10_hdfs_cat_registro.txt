@@ -1,0 +1,8 @@
+Grupo 03 - LG14
+Evidencia: Prueba funcional: lectura del archivo desde HDFS
+Comando: docker exec namenode hdfs dfs -cat /grupo03/lg14/registro_grupo03.txt
+Fecha: 2026-10-11 14:14:17 (UTC-4)
+----------------------------------------------------------------------
+Grupo 03 - LG14
+Prueba funcional de HDFS con hadoop-environment
+Integrantes: Pantoja, Antezana, Escalera

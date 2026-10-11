@@ -1,0 +1,10 @@
+Grupo 03 - LG14
+Evidencia: Nodos registrados en YARN
+Comando: docker exec resourcemanager yarn node -list -all
+Fecha: 2026-10-11 14:14:22 (UTC-4)
+----------------------------------------------------------------------
+2026-10-11 18:14:22,136 INFO client.DefaultNoHARMFailoverProxyProvider: Connecting to ResourceManager at resourcemanager/172.21.0.8:8032
+2026-10-11 18:14:22,481 INFO client.AHSProxy: Connecting to Application History server at historyserver/172.21.0.7:10200
+Total Nodes:1
+         Node-Id	     Node-State	Node-Http-Address	Number-of-Running-Containers
+4c5dcd8ab0f7:38433	        RUNNING	4c5dcd8ab0f7:8042	                           0

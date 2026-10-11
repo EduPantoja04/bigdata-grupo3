@@ -1,0 +1,3 @@
+# Los scripts se ejecutan dentro de contenedores Linux: con CRLF fallan con "/bin/bash^M: bad interpreter".
+*.sh text eol=lf
+Dockerfile text eol=lf

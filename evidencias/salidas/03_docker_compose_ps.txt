@@ -1,0 +1,14 @@
+Grupo 03 - LG14
+Evidencia: Servicios segun Docker Compose
+Comando: docker compose ps
+Fecha: 2026-10-11 14:14:06 (UTC-4)
+----------------------------------------------------------------------
+time="2026-10-11T14:14:06-04:00" level=warning msg="C:\\Users\\edupa\\source\\hadoop-environment\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+NAME              IMAGE                                COMMAND     SERVICE           CREATED          STATUS                    PORTS
+datanode1         hadoop-environment-datanode1         "/run.sh"   datanode1         59 minutes ago   Up 59 minutes (healthy)   9864/tcp
+datanode2         hadoop-environment-datanode2         "/run.sh"   datanode2         59 minutes ago   Up 59 minutes (healthy)   9864/tcp
+datanode3         hadoop-environment-datanode3         "/run.sh"   datanode3         59 minutes ago   Up 59 minutes (healthy)   9864/tcp
+historyserver     hadoop-environment-historyserver     "/run.sh"   historyserver     59 minutes ago   Up 59 minutes (healthy)   0.0.0.0:8188->8188/tcp, [::]:8188->8188/tcp
+namenode          hadoop-environment-namenode          "/run.sh"   namenode          59 minutes ago   Up 59 minutes (healthy)   0.0.0.0:8020->8020/tcp, [::]:8020->8020/tcp, 0.0.0.0:9870->9870/tcp, [::]:9870->9870/tcp
+nodemanager1      hadoop-environment-nodemanager1      "/run.sh"   nodemanager1      59 minutes ago   Up 59 minutes (healthy)   0.0.0.0:8042->8042/tcp, [::]:8042->8042/tcp
+resourcemanager   hadoop-environment-resourcemanager   "/run.sh"   resourcemanager   59 minutes ago   Up 59 minutes (healthy)   0.0.0.0:8089->8088/tcp, [::]:8089->8088/tcp

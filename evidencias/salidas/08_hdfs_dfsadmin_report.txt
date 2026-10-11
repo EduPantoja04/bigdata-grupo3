@@ -1,0 +1,87 @@
+Grupo 03 - LG14
+Evidencia: Estado de HDFS: NameNode y 3 DataNodes
+Comando: docker exec namenode hdfs dfsadmin -report
+Fecha: 2026-10-11 14:14:11 (UTC-4)
+----------------------------------------------------------------------
+Configured Capacity: 3243303530496 (2.95 TB)
+Present Capacity: 3018048970752 (2.74 TB)
+DFS Remaining: 3018048663552 (2.74 TB)
+DFS Used: 307200 (300 KB)
+DFS Used%: 0.00%
+Replicated Blocks:
+	Under replicated blocks: 0
+	Blocks with corrupt replicas: 0
+	Missing blocks: 0
+	Missing blocks (with replication factor 1): 0
+	Low redundancy blocks with highest priority to recover: 0
+	Pending deletion blocks: 0
+Erasure Coded Block Groups: 
+	Low redundancy block groups: 0
+	Block groups with corrupt internal blocks: 0
+	Missing block groups: 0
+	Low redundancy blocks with highest priority to recover: 0
+	Pending deletion blocks: 0
+
+-------------------------------------------------
+Live datanodes (3):
+
+Name: 172.21.0.3:9866 (datanode1.hadoop_network)
+Hostname: 6c8e635b352a
+Decommission Status : Normal
+Configured Capacity: 1081101176832 (1006.85 GB)
+DFS Used: 102400 (100 KB)
+Non DFS Used: 20092497920 (18.71 GB)
+DFS Remaining: 1006016221184 (936.93 GB)
+DFS Used%: 0.00%
+DFS Remaining%: 93.05%
+Configured Cache Capacity: 0 (0 B)
+Cache Used: 0 (0 B)
+Cache Remaining: 0 (0 B)
+Cache Used%: 100.00%
+Cache Remaining%: 0.00%
+Xceivers: 0
+Last contact: Sun Oct 11 18:14:09 UTC 2026
+Last Block Report: Sun Oct 11 18:05:30 UTC 2026
+Num of Blocks: 8
+
+
+Name: 172.21.0.4:9866 (datanode2.hadoop_network)
+Hostname: 70cb97ff6615
+Decommission Status : Normal
+Configured Capacity: 1081101176832 (1006.85 GB)
+DFS Used: 102400 (100 KB)
+Non DFS Used: 20092497920 (18.71 GB)
+DFS Remaining: 1006016221184 (936.93 GB)
+DFS Used%: 0.00%
+DFS Remaining%: 93.05%
+Configured Cache Capacity: 0 (0 B)
+Cache Used: 0 (0 B)
+Cache Remaining: 0 (0 B)
+Cache Used%: 100.00%
+Cache Remaining%: 0.00%
+Xceivers: 0
+Last contact: Sun Oct 11 18:14:09 UTC 2026
+Last Block Report: Sun Oct 11 17:15:00 UTC 2026
+Num of Blocks: 8
+
+
+Name: 172.21.0.5:9866 (datanode3.hadoop_network)
+Hostname: 4c7d642aece7
+Decommission Status : Normal
+Configured Capacity: 1081101176832 (1006.85 GB)
+DFS Used: 102400 (100 KB)
+Non DFS Used: 20092497920 (18.71 GB)
+DFS Remaining: 1006016221184 (936.93 GB)
+DFS Used%: 0.00%
+DFS Remaining%: 93.05%
+Configured Cache Capacity: 0 (0 B)
+Cache Used: 0 (0 B)
+Cache Remaining: 0 (0 B)
+Cache Used%: 100.00%
+Cache Remaining%: 0.00%
+Xceivers: 0
+Last contact: Sun Oct 11 18:14:09 UTC 2026
+Last Block Report: Sun Oct 11 17:15:00 UTC 2026
+Num of Blocks: 8
+
+
