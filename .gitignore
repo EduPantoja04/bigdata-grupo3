@@ -1,0 +1,13 @@
+# Datasets grandes (LG15) y datos locales
+datasets/
+dataset_grupo03_*
+
+# Sistema operativo y editores
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
