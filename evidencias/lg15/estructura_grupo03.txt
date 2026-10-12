@@ -1,0 +1,39 @@
+GRUPO 03 - LG15 - Estructura en HDFS - 2026-10-12 03:25:17
+
+drwxr-xr-x   - root supergroup          0 2026-10-12 02:55 /grupo03/dataset_10GB
+-rw-r--r--   2 root supergroup 10737418240 2026-10-12 02:55 /grupo03/dataset_10GB/dataset_grupo03_10GB
+drwxr-xr-x   - root supergroup           0 2026-10-12 02:40 /grupo03/dataset_1GB
+-rw-r--r--   2 root supergroup  1073741824 2026-10-12 02:40 /grupo03/dataset_1GB/dataset_grupo03_1GB
+drwxr-xr-x   - root supergroup           0 2026-10-12 03:24 /grupo03/evidencias
+-rw-r--r--   2 root supergroup       63133 2026-10-12 03:24 /grupo03/evidencias/05_lg15_datanodes_inicial.png
+-rw-r--r--   2 root supergroup       57346 2026-10-12 03:24 /grupo03/evidencias/06_lg15_datanodes_antes_falla.png
+-rw-r--r--   2 root supergroup       94629 2026-10-12 03:24 /grupo03/evidencias/07_lg15_overview_antes_falla.png
+-rw-r--r--   2 root supergroup       60542 2026-10-12 03:24 /grupo03/evidencias/08_lg15_datanodes_durante_dead.png
+-rw-r--r--   2 root supergroup       94397 2026-10-12 03:24 /grupo03/evidencias/09_lg15_overview_durante_subreplicados.png
+-rw-r--r--   2 root supergroup        7894 2026-10-12 03:24 /grupo03/evidencias/10GB_antes.txt
+-rw-r--r--   2 root supergroup        7862 2026-10-12 03:24 /grupo03/evidencias/10GB_despues.txt
+-rw-r--r--   2 root supergroup        7768 2026-10-12 03:24 /grupo03/evidencias/10GB_durante.txt
+-rw-r--r--   2 root supergroup        6902 2026-10-12 03:24 /grupo03/evidencias/10GB_durante_recuperacion.txt
+-rw-r--r--   2 root supergroup        2182 2026-10-12 03:24 /grupo03/evidencias/10GB_esperar.txt
+-rw-r--r--   2 root supergroup        7741 2026-10-12 03:24 /grupo03/evidencias/10GB_restaurado.txt
+-rw-r--r--   2 root supergroup       94030 2026-10-12 03:24 /grupo03/evidencias/10_lg15_overview_recuperado.png
+-rw-r--r--   2 root supergroup       51717 2026-10-12 03:24 /grupo03/evidencias/11_lg15_datanodes_restaurado.png
+-rw-r--r--   2 root supergroup          67 2026-10-12 03:24 /grupo03/evidencias/1GB_00_md5_antes.txt
+-rw-r--r--   2 root supergroup        2456 2026-10-12 03:24 /grupo03/evidencias/1GB_01_antes_report.txt
+-rw-r--r--   2 root supergroup        3645 2026-10-12 03:24 /grupo03/evidencias/1GB_02_antes_fsck.txt
+-rw-r--r--   2 root supergroup          72 2026-10-12 03:24 /grupo03/evidencias/1GB_03_antes_replicas_por_nodo.txt
+-rw-r--r--   2 root supergroup        2442 2026-10-12 03:24 /grupo03/evidencias/1GB_04_durante_report.txt
+-rw-r--r--   2 root supergroup        3645 2026-10-12 03:24 /grupo03/evidencias/1GB_05_durante_fsck.txt
+-rw-r--r--   2 root supergroup        4559 2026-10-12 03:24 /grupo03/evidencias/1GB_06_durante_md5.txt
+-rw-r--r--   2 root supergroup        1666 2026-10-12 03:24 /grupo03/evidencias/1GB_despues.txt
+-rw-r--r--   2 root supergroup        2166 2026-10-12 03:24 /grupo03/evidencias/1GB_esperar.txt
+-rw-r--r--   2 root supergroup        1546 2026-10-12 03:24 /grupo03/evidencias/1GB_restaurado.txt
+-rw-r--r--   2 root supergroup        3854 2026-10-12 03:24 /grupo03/evidencias/lg15.sh
+drwxr-xr-x   - root supergroup           0 2026-10-12 03:25 /grupo03/resultados
+-rw-r--r--   2 root supergroup        7862 2026-10-12 03:25 /grupo03/resultados/10GB_despues.txt
+-rw-r--r--   2 root supergroup        2182 2026-10-12 03:25 /grupo03/resultados/10GB_esperar.txt
+-rw-r--r--   2 root supergroup        1666 2026-10-12 03:25 /grupo03/resultados/1GB_despues.txt
+-rw-r--r--   2 root supergroup        2166 2026-10-12 03:25 /grupo03/resultados/1GB_esperar.txt
+
+1 G   2 G   /grupo03/dataset_1GB
+10 G  20 G  /grupo03/dataset_10GB
