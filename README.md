@@ -1,314 +1,649 @@
-# LG14 — Investigación y despliegue de un repositorio Big Data con Docker
+# bigdata-grupo3 — LG14 y LG15: Hadoop HDFS con Docker
 
-Universidad del Valle · Tecnologías Emergentes · Grupo 3
+**Universidad del Valle — Grupo 03**
+**Integrantes:** Pantoja, Antezana, Escalera
 
-Este repositorio documenta el análisis, el despliegue y la prueba funcional de un proyecto público de Big Data. No es un fork ni una copia renombrada: el proyecto analizado se clona desde su repositorio original y aquí solo se guardan el informe, las copias de configuración usadas, los scripts propios y las evidencias.
+- **LG14** (secciones 1 a 7): investigación, despliegue y prueba funcional del repositorio
+  [spraharaj-projects/hadoop-environment](https://github.com/spraharaj-projects/hadoop-environment):
+  un clúster **Apache Hadoop 3.3.6** multinodo (1 NameNode, 3 DataNodes, YARN e History Server)
+  orquestado con **Docker Compose**. Se compara con el proyecto de referencia
+  [big-data-europe/docker-hadoop](https://github.com/big-data-europe/docker-hadoop).
+- **LG15** (sección 8): tolerancia a fallos y replicación en HDFS sobre el mismo clúster, con factor de
+  replicación 2, datasets de 1 GB y 10 GB y la caída de un DataNode.
 
-## Registro del repositorio
+## Contenido del repositorio
+
+| Ruta | Contenido |
+|---|---|
+| [`REGISTRO.txt`](REGISTRO.txt) | Registro del repositorio seleccionado |
+| [`hadoop-environment/`](hadoop-environment/) | Archivos de configuración usados: `docker-compose.yml`, `Dockerfile` base (con correcciones), `conf/*.xml` (con replicación 2 para LG15) y `Dockerfile` + `run.sh` de cada servicio |
+| [`hadoop-environment/data/`](hadoop-environment/data/) | Archivo de prueba cargado a HDFS (`registro_grupo03.txt`) |
+| [`scripts/`](scripts/) | Scripts de despliegue, prueba HDFS y captura de evidencias; [`lg15.sh`](scripts/lg15.sh) para la prueba de fallo de LG15 |
+| [`docs/arquitectura.md`](docs/arquitectura.md) | Diagrama y análisis detallado de la arquitectura |
+| [`docs/manual-comandos.md`](docs/manual-comandos.md) | Manual paso a paso de todos los comandos, indicando dónde se ejecuta cada uno |
+| [`evidencias/salidas/`](evidencias/salidas/) | Salidas reales de los comandos ejecutados (LG14) |
+| [`evidencias/lg15/`](evidencias/lg15/) | Salidas de la prueba de fallo con los datasets de 1 GB y 10 GB (LG15) |
+| [`evidencias/capturas/`](evidencias/capturas/) | Capturas de las interfaces web (01–04: LG14; 05–11: LG15) |
+
+---
+
+## 1. Información general del repositorio seleccionado
 
 | Campo | Valor |
-| --- | --- |
-| Estudiantes | Eduardo Antezana Jau, David Andres Escalera Rocha, Luis Eduardo Pantoja Fernandez |
-| Repositorio | docker-hive |
-| URL | https://github.com/big-data-europe/docker-hive |
-| Autor / organización | Big Data Europe |
-| Descripción | Entorno Docker Compose para Apache Hive 2.3.2 sobre HDFS, con metastore en PostgreSQL. |
+|---|---|
+| Nombre | `hadoop-environment` |
+| Autor / organización | [spraharaj-projects](https://github.com/spraharaj-projects) |
+| URL | https://github.com/spraharaj-projects/hadoop-environment |
+| Fecha de creación | 11/06/2024 |
+| Última actualización del código | 11/06/2024 (3 commits, todos ese día) |
+| Estrellas | 5 |
+| Forks | 0 |
+| Licencia | El README declara **Apache 2.0**, pero el repositorio no incluye archivo `LICENSE` y GitHub no detecta ninguna licencia |
+| Lenguajes (GitHub) | Python 44.8 %, Dockerfile 34.6 %, Shell 20.5 % |
 
-## 1. Información general
-
-Datos tomados de la API de GitHub y del commit clonado para la práctica (`502fa269fe1913737ecfa0ef6ea05adb48b33868`, 6 de mayo de 2019).
-
-| Campo | docker-hive |
-| --- | --- |
-| Nombre | docker-hive |
-| Autor / organización | Big Data Europe |
-| URL | https://github.com/big-data-europe/docker-hive |
-| Fecha de creación | 20 de mayo de 2016 |
-| Último commit en `master` | 6 de mayo de 2019 |
-| Última actividad visible en GitHub | 29 de septiembre de 2026 (metadatos; el código de `master` no cambió en ese commit) |
-| Estrellas | 1081 |
-| Forks | 564 |
-| Licencia | No declarada en el repositorio |
-| Objetivo | Levantar Apache Hive 2.3.2 con HiveServer2 y un metastore respaldado por PostgreSQL, usando HDFS como sistema de archivos. |
+**Objetivo del proyecto:** ofrecer una guía paso a paso para montar, en una sola máquina con WSL2 y
+Docker, un clúster Hadoop 3.3.6 multinodo que se parezca a uno real: un contenedor por cada demonio de
+Hadoop, tres DataNodes y los servicios de YARN necesarios para ejecutar trabajos MapReduce.
 
 ## 2. Tecnologías
 
-| Tecnología | Versión / detalle |
-| --- | --- |
-| Tecnología Big Data principal | Apache Hive, sobre HDFS |
-| Hive | 2.3.2 |
-| Hadoop | 2.7.4 (imágenes `bde2020/hadoop-namenode` y `bde2020/hadoop-datanode`, etiqueta `2.0.0-hadoop2.7.4-java8`) |
-| Docker | Sí. La imagen de Hive parte de `bde2020/hadoop-base:2.0.0-hadoop2.7.4-java8` |
-| Docker Compose | Sí. Archivo `docker-compose.yml` en la raíz, `version: "3"` |
-| Sistema operativo base | Familia Debian: el `Dockerfile` instala paquetes con `apt-get` sobre la imagen Hadoop base, con Java 8 |
-| Base de datos | PostgreSQL para el metastore (`bde2020/hive-metastore-postgresql:2.3.0`). El driver JDBC incluido es PostgreSQL 9.4.1212 |
-| Frameworks adicionales | PrestoDB 0.181 (`shawnzhu/prestodb:0.181`), como coordinador opcional de consulta SQL |
-| Lenguajes del repositorio | Shell (entrypoint, arranque y Makefile), Dockerfile, XML y properties de configuración. Hive y Hadoop son Java |
-
-Hive no trae un clúster YARN propio. El archivo `hadoop-hive.env` incluye variables `YARN_CONF_*`, pero `docker-compose.yml` no define ResourceManager, NodeManager ni HistoryServer. Esas variables vienen del estilo de configuración de docker-hadoop y en este despliegue no tienen un proceso que las use.
+| Elemento | Detalle |
+|---|---|
+| Tecnología Big Data principal | Apache Hadoop: **HDFS** (almacenamiento) y **YARN + MapReduce** (procesamiento) |
+| Versión | Hadoop **3.3.6** (verificado con `hadoop version`) |
+| Docker | Docker Engine **29.6.1** (Docker Desktop en Windows 11) |
+| Docker Compose | Compose **v5.3.0**; el archivo declara `version: "2.4"` (Compose lo ignora y avisa que es obsoleto) |
+| Sistema operativo base | **Debian 12 (bookworm)**, desde la imagen `python:3.11-bookworm` |
+| Java | **Eclipse Temurin OpenJDK 11.0.32** (copiado desde `eclipse-temurin:11-jdk`) |
+| Bases de datos | No usa bases de datos externas. El estado del ResourceManager se guarda en HDFS (`/rmstate`) y el historial de aplicaciones en un almacén local LevelDB del History Server |
+| Frameworks adicionales | YARN Timeline / Application History Server. Python 3.11 viene en la imagen base, pero Hadoop no lo usa |
+| Lenguajes | Dockerfile, Bash (`run.sh`), XML (configuración de Hadoop), YAML (Compose) y Python (`project_init.py` y `project_init_2.py` solo crean la estructura de carpetas vacía a partir de `project_structure.yml`) |
 
 ## 3. Arquitectura
 
-El archivo ejecutado es el `docker-compose.yml` de la raíz. Define **6 servicios**. Compose no les asigna `container_name`, así que Docker los nombra `docker-hive-<servicio>-1`. La red es la red bridge por defecto del proyecto (`docker-hive_default`): los servicios se resuelven por su nombre.
+El diagrama completo y el análisis de cada contenedor, puerto, red, volumen, dependencia, variable de
+entorno y archivo de configuración están en **[`docs/arquitectura.md`](docs/arquitectura.md)**.
 
-No hay un clúster YARN. El procesamiento SQL entra por HiveServer2 o por Presto, y el almacenamiento de archivos es un HDFS de un NameNode y un DataNode.
+Resumen:
 
-![Arquitectura de docker-hive](docs/arquitectura.svg)
+| Contenedor | Función | Puerto en el host | Volumen |
+|---|---|---|---|
+| `namenode` | Maestro de HDFS (metadatos y ubicación de bloques) | 9870 (web), 8020 (RPC) | `hadoop_namenode` |
+| `datanode1` | Almacena bloques de HDFS | — | `hadoop_datanode1` |
+| `datanode2` | Almacena bloques de HDFS | — | `hadoop_datanode2` |
+| `datanode3` | Almacena bloques de HDFS | — | `hadoop_datanode3` |
+| `resourcemanager` | Maestro de YARN (asigna recursos a los trabajos) | 8089 → 8088 (web) | — |
+| `nodemanager1` | Ejecuta las tareas de YARN | 8042 (web) | — |
+| `historyserver` | Historial de aplicaciones YARN | 8188 (web) | `hadoop_historyserver` |
 
-El diagrama también está en PNG: [docs/arquitectura.png](docs/arquitectura.png).
+- **Contenedores:** 7, uno por demonio de Hadoop, todos con imágenes construidas localmente.
+- **Red:** `hadoop_network` (bridge **externa**: hay que crearla antes de `docker compose up`).
+- **Configuración:** archivos XML en `conf/`, copiados dentro de la imagen base.
+- **Replicación:** en LG14 no está configurada, por lo que HDFS usa el valor por defecto (**3**) con bloques de **128 MB**.
+  Para LG15 se fijó en **2** en `hdfs-site.xml` (ver [sección 8.1](#81-cambios-en-la-configuración)).
 
-Flujo de una consulta: el cliente (Beeline o Presto) pide al metastore, por Thrift en el puerto 9083, dónde están los datos y qué esquema tienen; el metastore guarda esa información en PostgreSQL. Con esa respuesta, HiveServer2 o Presto leen los archivos directamente de HDFS: piden la ubicación de los bloques al NameNode (8020) y leen los bloques del DataNode (50010).
+---
 
-### Contenedores
+## 4. Instalación y ejecución
 
-| Contenedor | Imagen | Función | Puertos publicados | Volumen |
-| --- | --- | --- | --- | --- |
-| namenode | `bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8` | Metadatos de HDFS y UI del NameNode. El sistema de archivos por defecto es `hdfs://namenode:8020` | 50070 | `namenode` → `/hadoop/dfs/name` |
-| datanode | `bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8` | Guarda los bloques de HDFS | 50075 | `datanode` → `/hadoop/dfs/data` |
-| hive-metastore-postgresql | `bde2020/hive-metastore-postgresql:2.3.0` | Base del catálogo de Hive (esquemas y tablas, no los archivos) | 5432 solo dentro de la red | Ninguno |
-| hive-metastore | `bde2020/hive:2.3.2-postgresql-metastore` | Servicio Thrift del metastore. El comando del compose reemplaza el arranque por `hive --service metastore` | 9083 | Ninguno |
-| hive-server | `bde2020/hive:2.3.2-postgresql-metastore` | HiveServer2. Al arrancar crea `/tmp` y `/user/hive/warehouse` en HDFS | 10000 | Ninguno |
-| presto-coordinator | `shawnzhu/prestodb:0.181` | Coordinador Presto para consultar el catálogo Hive por SQL | 8080 | Ninguno |
+### Requisitos
 
-La imagen de Hive declara `EXPOSE 10000` y `EXPOSE 10002` (UI web de HiveServer2), pero el compose solo publica 10000.
+- Docker Desktop con Docker Compose v2 o superior.
+- Unos 6 GB libres para las imágenes y conexión a internet para el primer build (descarga Hadoop, ~700 MB).
 
-### Red
+### Paso 1 — Clonar el repositorio
 
-Una sola red, `docker-hive_default`, de tipo bridge, creada automáticamente por Compose (el archivo no declara `networks:`). Dentro de ella cada servicio se resuelve por su nombre: por eso `fs.defaultFS` es `hdfs://namenode:8020` y el metastore se encuentra en `thrift://hive-metastore:9083`. Los puertos internos que no se publican (8020, 50010, 5432) solo son accesibles entre contenedores.
+Se clona con `core.autocrlf=false`. Git para Windows convierte por defecto los finales de línea a CRLF,
+y los `run.sh` con CRLF hacen que los contenedores se detengan con `/bin/bash^M: bad interpreter`.
 
-### Dependencias
-
-El compose no usa `depends_on`. El orden lo impone `SERVICE_PRECONDITION`, y `entrypoint.sh` espera con `nc -z` hasta 100 intentos de 5 segundos:
-
-| Servicio | Espera a |
-| --- | --- |
-| datanode | `namenode:50070` |
-| hive-metastore | `namenode:50070`, `datanode:50075`, `hive-metastore-postgresql:5432` |
-| hive-server | `hive-metastore:9083` |
-| presto-coordinator | Nada. Puede quedar arriba aunque Hive todavía no responda |
-| hive-metastore-postgresql | Nada |
-
-En `hive-server` el compose declara `HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore/metastore`. Ese prefijo no lo lee `entrypoint.sh`: solo convierte `HIVE_SITE_CONF_*` en propiedades de `hive-site.xml`. La URL que sí queda configurada es la de `hadoop-hive.env`, `jdbc:postgresql://hive-metastore-postgresql/metastore`, donde `hive-metastore-postgresql` es el contenedor de PostgreSQL y `hive-metastore` es el servicio Thrift.
-
-### Variables de entorno
-
-`hadoop-hive.env` se inyecta en NameNode, DataNode, HiveServer2 y metastore. `entrypoint.sh` convierte el prefijo y los guiones bajos en propiedades XML:
-
-- `CORE_CONF_fs_defaultFS` → `fs.defaultFS=hdfs://namenode:8020`
-- `HDFS_CONF_dfs_permissions_enabled=false` deja HDFS sin control de permisos, útil para la prueba local
-- `HDFS_CONF_dfs_webhdfs_enabled=true`
-- `HIVE_SITE_CONF_javax_jdo_option_ConnectionUserName=hive` y la contraseña `hive` (valores de ejemplo del repositorio público)
-- `HIVE_SITE_CONF_hive_metastore_uris=thrift://hive-metastore:9083`
-
-`conf/hive-site.xml` se entrega vacío. La configuración real se escribe al iniciar el contenedor.
-
-### Archivos de configuración
-
-| Archivo | Rol |
-| --- | --- |
-| `docker-compose.yml` | Servicios, imágenes, puertos y volúmenes |
-| `hadoop-hive.env` | Propiedades de Hadoop y Hive |
-| `Dockerfile` | Instala Hive 2.3.2 y el JDBC de PostgreSQL sobre la imagen Hadoop |
-| `entrypoint.sh` | Genera los XML y espera las precondiciones |
-| `startup.sh` | Prepara directorios HDFS y lanza HiveServer2 |
-| `conf/` | `hive-site.xml` vacío, `hive-env.sh` y log4j de Hive |
-
-Las copias de esos archivos, tomadas del commit `502fa269`, están en [`config/`](config/). El único archivo agregado por el grupo es `docker-compose.override.yml`.
-
-### Persistencia
-
-Solo HDFS persiste, en los volúmenes nombrados `namenode` y `datanode`. PostgreSQL no tiene volumen: si se recrea ese contenedor, el catálogo de tablas se pierde aunque los archivos sigan en HDFS.
-
-## 4. Comparación con docker-hadoop
-
-El referente de la guía es [big-data-europe/docker-hadoop](https://github.com/big-data-europe/docker-hadoop). Comparten organización e imágenes `bde2020`, pero el compose, las versiones y el propósito no son los mismos. `docker-hive` no es un cambio de nombre de ese repositorio.
-
-| Característica | docker-hadoop | docker-hive (este trabajo) |
-| --- | --- | --- |
-| Tecnología principal | Hadoop 3.2.1 (HDFS + YARN) | Hive 2.3.2 sobre Hadoop 2.7.4 |
-| Docker | Sí | Sí |
-| Docker Compose | Sí, `docker-compose.yml` en la raíz | Sí, `docker-compose.yml` en la raíz |
-| Número de contenedores | 5: namenode, datanode, resourcemanager, nodemanager, historyserver | 6: namenode, datanode, hive-server, hive-metastore, hive-metastore-postgresql, presto-coordinator |
-| Almacenamiento distribuido | HDFS. Volúmenes `hadoop_namenode`, `hadoop_datanode` y `hadoop_historyserver` | HDFS. Volúmenes `namenode` y `datanode`. Un solo DataNode |
-| Procesamiento distribuido | YARN: ResourceManager y NodeManager | No hay YARN. La consulta es SQL por HiveServer2 y, si se usa, Presto |
-| Interfaces web | El compose publica el NameNode en 9870 y el RPC en 9000. El README documenta además HistoryServer 8188, DataNode 9864, NodeManager 8042 y ResourceManager 8088 | NameNode 50070, DataNode 50075, Presto 8080. HiveServer2 es JDBC en 10000, no una UI web |
-| Persistencia | Tres volúmenes nombrados para NameNode, DataNode e historial de YARN | Dos volúmenes de HDFS. El catálogo de PostgreSQL no tiene volumen |
-| Complejidad de instalación | `docker compose up` y un `hadoop.env` | Igual de corta en comandos, con más servicios y una imagen extra de Presto. El stack es más viejo (Hadoop 2.7.4, Hive 2.3.2, Presto 0.181) |
-| Documentación | README con URLs de las UI y la convención `CORE_CONF` / `HDFS_CONF` / `YARN_CONF` | README breve. Remite a docker-hadoop para la configuración de Hadoop e incluye un ejemplo con Beeline |
-| Caso de uso | Clúster de ejemplo para almacenar en HDFS y ejecutar trabajos en YARN | Almacén de datos: tablas Hive sobre archivos en HDFS, con el catálogo en PostgreSQL |
-
-La diferencia de propósito es la que importa. docker-hadoop muestra el sistema de archivos y el gestor de recursos. docker-hive se apoya en HDFS para guardar archivos y añade el catálogo y el motor SQL. Por eso la prueba de este grupo hace las tres operaciones de HDFS que pide la guía y, además, una consulta Hive sobre ese mismo archivo.
-
-## 5. Implementación
-
-Ejecutado el 4 de octubre de 2026 en Windows 11 (PowerShell), con Docker Desktop, Docker Engine 29.6.1 y Docker Compose v5.3.0.
-
-### Paso 1 y 2: clonar e ingresar al directorio
-
-```text
-git clone https://github.com/big-data-europe/docker-hive.git
-cd docker-hive
+```powershell
+git clone -c core.autocrlf=false https://github.com/spraharaj-projects/hadoop-environment.git
 ```
 
-### Paso 3: identificar los archivos principales
+### Paso 2 — Ingresar al directorio
 
-`ls -la` es sintaxis de Linux. En PowerShell `ls` es un alias de `Get-ChildItem` y no acepta `-la`, por eso falla en la captura; el equivalente es `ls -Force`, que también muestra archivos ocultos como `.git` y `.gitignore`.
-
-![git clone, ls -Force](evidencias/01-git-clone-y-ls.png)
-
-El listado también está en texto en [evidencias/01-archivos.txt](evidencias/01-archivos.txt). Los archivos que definen el despliegue son `docker-compose.yml`, `hadoop-hive.env`, `Dockerfile`, `entrypoint.sh`, `startup.sh` y `conf/`.
-
-### Paso 4: analizar el docker-compose.yml
-
-![cat docker-compose.yml](evidencias/02-cat-docker-compose.png)
-
-El análisis de cada servicio está en la [sección 3](#3-arquitectura).
-
-### Paso 5: construir y ejecutar
-
-```text
-docker compose up -d
+```powershell
+cd hadoop-environment
 ```
 
-No hay que construir nada: el compose usa imágenes ya publicadas en Docker Hub (`bde2020/*` y `shawnzhu/prestodb`), que se descargan la primera vez. El `Dockerfile` solo hace falta si se quiere reconstruir la imagen de Hive con `make build`. Las imágenes descargadas suman unos 11 GB; la de Presto sola pesa 4,71 GB.
+### Paso 3 — Identificar los archivos principales
 
-![Imágenes descargadas en Docker Desktop](evidencias/03-imagenes-docker-desktop.png)
+```powershell
+Get-ChildItem -Force        # equivalente a: ls -la
+```
 
-En el primer intento Presto no pudo publicar el puerto 8080 porque en este equipo lo usa el listener de Oracle (`TNSLSNR`). NameNode, DataNode, PostgreSQL, metastore y HiveServer2 sí quedaron en ejecución. Para no modificar el compose original se agregó [config/docker-compose.override.yml](config/docker-compose.override.yml), que Docker Compose combina automáticamente con `docker-compose.yml` y publica Presto en el host como `8081`. Con eso el sexto contenedor también arrancó.
+| Archivo / carpeta | Rol |
+|---|---|
+| `docker-compose.yml` | Define los 7 servicios |
+| `Dockerfile` | Imagen base `hadoop-base:3.3.6` (Java + Hadoop + configuración) |
+| `conf/` | `core-site.xml`, `hdfs-site.xml`, `yarn-site.xml`, `mapred-site.xml` |
+| `namenode/`, `datanode/`, `resourcemanager/`, `nodemanager/`, `historyserver/` | `Dockerfile` y `run.sh` de cada servicio |
+| `start-cluster.sh` | Script original de arranque (usa el comando antiguo `docker-compose`) |
+| `project_init.py`, `project_init_2.py`, `project_structure.yml` | Generan la estructura de carpetas vacía; no intervienen en el despliegue |
 
-Compose muestra el aviso `the attribute version is obsolete`: Compose v2 ignora la clave `version: "3"`, pero no es un error.
+### Paso 4 — Analizar el archivo de Docker Compose
 
-### Paso 6: verificar los contenedores
+```powershell
+Get-Content docker-compose.yml   # equivalente a: cat docker-compose.yml
+```
 
-```text
+El análisis completo del archivo está en [`docs/arquitectura.md`](docs/arquitectura.md).
+
+### Correcciones necesarias antes de construir
+
+El repositorio **no compila tal como está publicado**, porque dos imágenes base cambiaron desde 2024.
+El grupo aplicó tres cambios al `Dockerfile` de la raíz (la versión corregida está en
+[`hadoop-environment/Dockerfile`](hadoop-environment/Dockerfile)):
+
+| Original | Corregido | Motivo |
+|---|---|---|
+| `FROM openjdk:11-jdk AS jdk` | `FROM eclipse-temurin:11-jdk AS jdk` | La imagen oficial `openjdk` fue retirada de Docker Hub |
+| `FROM python:3.11` | `FROM python:3.11-bookworm` | `python:3.11` ahora usa Debian 13 (trixie), que ya no tiene el paquete `software-properties-common` que instala el `Dockerfile` |
+| `COPY --from=jdk $JAVA_HOME $JAVA_HOME` | `COPY --from=jdk /opt/java/openjdk $JAVA_HOME` | En la imagen Temurin, Java está en `/opt/java/openjdk` y no en `/usr/local/openjdk-11` |
+
+### Paso 5 — Construir y ejecutar
+
+```powershell
+docker network create hadoop_network
+docker build -t hadoop-base:3.3.6 .
+docker compose up -d --build
+```
+
+La red se crea a mano porque el Compose la declara como externa. Los mismos pasos, usando los archivos
+de este repositorio, están en [`scripts/despliegue.ps1`](scripts/despliegue.ps1).
+
+### Paso 6 — Verificar los contenedores
+
+```powershell
 docker ps
 ```
 
-La captura muestra la red `docker-hive_default`, los volúmenes `docker-hive_namenode` y `docker-hive_datanode`, los seis contenedores en estado `Up` (NameNode y DataNode con `healthy`) y, a continuación, la prueba HDFS hecha a mano:
+Resultado ([`02_docker_ps.txt`](evidencias/salidas/02_docker_ps.txt), sin las líneas de puertos IPv6):
+los 7 contenedores en estado `Up (healthy)`.
 
-![docker compose up -d, docker ps y prueba HDFS](evidencias/04-compose-up-ps-y-hdfs.png)
+```text
+NAMES             IMAGE                                STATUS                    PORTS
+historyserver     hadoop-environment-historyserver     Up 59 minutes (healthy)   0.0.0.0:8188->8188/tcp
+nodemanager1      hadoop-environment-nodemanager1      Up 59 minutes (healthy)   0.0.0.0:8042->8042/tcp
+resourcemanager   hadoop-environment-resourcemanager   Up 59 minutes (healthy)   0.0.0.0:8089->8088/tcp
+datanode2         hadoop-environment-datanode2         Up 59 minutes (healthy)   9864/tcp
+datanode3         hadoop-environment-datanode3         Up 59 minutes (healthy)   9864/tcp
+datanode1         hadoop-environment-datanode1         Up 59 minutes (healthy)   9864/tcp
+namenode          hadoop-environment-namenode          Up 59 minutes (healthy)   0.0.0.0:8020->8020/tcp, 0.0.0.0:9870->9870/tcp
+```
 
-La salida de `docker ps` en texto está en [evidencias/02-docker-ps.txt](evidencias/02-docker-ps.txt). La UI del NameNode respondió HTTP 200 en http://localhost:50070/dfshealth.html ([evidencias/05-namenode-ui.txt](evidencias/05-namenode-ui.txt)).
+### Paso 7 — Prueba funcional en HDFS
 
-En el log de `hive-server` se confirma la lectura real de la configuración: `javax.jdo.option.ConnectionURL=jdbc:postgresql://hive-metastore-postgresql/metastore`. El metastore anunció `Started the new metaserver on port [9083]` y HiveServer2 arrancó a las 22:39 UTC del mismo día.
-
-## 6. Prueba funcional (paso 7)
-
-La prueba obligatoria es de HDFS y se hizo dos veces: primero a mano dentro del NameNode y después con un script repetible.
-
-### Prueba manual
-
-Dentro de `docker compose exec namenode bash` (captura del paso 6):
+El archivo [`registro_grupo03.txt`](hadoop-environment/data/registro_grupo03.txt) se colocó en la
+carpeta local `data/`, que el `namenode` monta en `/hadoop-data/input`.
 
 ```bash
-hdfs dfs -mkdir -p /user/grupo3/prueba          # 1. crear directorio
-hdfs dfs -ls /user/grupo3
-cat > /tmp/ventas.txt << 'EOF'
-id,producto,cantidad
-1,cafe,10
-2,cacao,4
-3,panela,7
-EOF
-hdfs dfs -put /tmp/ventas.txt /user/grupo3/prueba/   # 2. cargar archivo
-hdfs dfs -ls /user/grupo3/prueba                     # 3. consultar
+docker exec -it namenode bash
+hdfs dfs -mkdir -p /grupo03/lg14                                          # crear directorio
+hdfs dfs -put /hadoop-data/input/registro_grupo03.txt /grupo03/lg14/      # cargar archivo
+hdfs dfs -ls /grupo03/lg14                                                # consultar
+hdfs dfs -cat /grupo03/lg14/registro_grupo03.txt                          # leer
+hdfs fsck /grupo03/lg14/registro_grupo03.txt -files -blocks -locations    # bloques y réplicas
 ```
 
-El archivo quedó en HDFS con 52 bytes. El explorador web del NameNode (`Utilities → Browse the file system`) lo muestra en `/user/grupo3/prueba`, con réplica 3 y bloque de 128 MB:
+Los mismos comandos están en [`scripts/prueba_hdfs.sh`](scripts/prueba_hdfs.sh).
 
-![Explorador HDFS en la UI del NameNode](evidencias/05-namenode-ui-explorador.png)
+---
 
-Al abrir el archivo se ve que ocupa un solo bloque (`Block 0`, 52 bytes) y que está disponible en un único DataNode (`5de9faefd8c4`, que es el ID del contenedor `docker-hive-datanode-1` en `docker ps`):
+## 5. Resultados
 
-![Información del bloque en la UI del NameNode](evidencias/06-namenode-ui-bloque.png)
+### Estado del clúster
 
-### Prueba con script
+`hdfs dfsadmin -report` ([`08_hdfs_dfsadmin_report.txt`](evidencias/salidas/08_hdfs_dfsadmin_report.txt))
+muestra **3 DataNodes vivos** (`Live datanodes (3)`), sin bloques perdidos, corruptos ni subreplicados.
+La interfaz web del NameNode lo confirma:
 
-El script [scripts/prueba-hdfs.sh](scripts/prueba-hdfs.sh) hace las tres operaciones dentro del NameNode:
+![Overview del NameNode](evidencias/capturas/01_namenode_overview.png)
 
-1. Crea el directorio `/user/grupo3/prueba`.
-2. Carga `ventas-grupo3.txt` (café, cacao y panela).
-3. Lista el directorio y lee el archivo con `hdfs dfs -cat`.
+![DataNodes en operación](evidencias/capturas/02_namenode_datanodes.png)
 
-Resultado guardado en [evidencias/03-prueba-hdfs.txt](evidencias/03-prueba-hdfs.txt):
+### Prueba funcional HDFS
+
+**Directorio y archivo creados** ([`09_hdfs_ls_grupo03.txt`](evidencias/salidas/09_hdfs_ls_grupo03.txt)):
 
 ```text
-Found 1 items
--rw-r--r--   3 root supergroup   52 2026-10-04 22:43 /user/grupo3/prueba/ventas-grupo3.txt
-id,producto,cantidad
-1,cafe,10
-2,cacao,4
-3,panela,7
+drwxr-xr-x   - root supergroup          0 2026-10-11 17:29 /grupo03/lg14
+-rw-r--r--   3 root supergroup        106 2026-10-11 17:29 /grupo03/lg14/registro_grupo03.txt
 ```
 
-El `3` de la primera columna es el factor de réplica que trae Hadoop por defecto. En este compose solo hay un DataNode, así que el archivo se lee bien, pero no hay tres copias físicas.
-
-### Prueba adicional con Hive
-
-Como la tecnología principal del repositorio es Hive, la segunda prueba crea una tabla externa sobre esa misma ruta y la consulta con Beeline desde `hive-server`. No mueve el archivo: `LOAD DATA` lo sacaría de `/user/grupo3/prueba`. El script es [scripts/prueba-hive.sh](scripts/prueba-hive.sh) y el resultado está en [evidencias/04-prueba-hive.txt](evidencias/04-prueba-hive.txt):
+**Lectura desde HDFS** ([`10_hdfs_cat_registro.txt`](evidencias/salidas/10_hdfs_cat_registro.txt)):
 
 ```text
-+-------------------+-------------------------+-------------------------+
-| ventas_grupo3.id  | ventas_grupo3.producto  | ventas_grupo3.cantidad  |
-+-------------------+-------------------------+-------------------------+
-| 1                 | cafe                    | 10                      |
-| 2                 | cacao                   | 4                       |
-| 3                 | panela                  | 7                       |
-+-------------------+-------------------------+-------------------------+
+Grupo 03 - LG14
+Prueba funcional de HDFS con hadoop-environment
+Integrantes: Pantoja, Antezana, Escalera
 ```
 
-Esta consulta recorre toda la arquitectura: Beeline habla con HiveServer2, HiveServer2 registra la tabla en el metastore (que la guarda en PostgreSQL) y lee el archivo desde HDFS. Si `SELECT` devuelve las filas, los cinco contenedores del camino de Hive (todos menos Presto) están funcionando y conectados.
+**Bloques y réplicas** ([`11_hdfs_fsck_registro.txt`](evidencias/salidas/11_hdfs_fsck_registro.txt), resumido y con el DataNode de cada IP anotado):
 
-## 7. Problemas encontrados
+```text
+/grupo03/lg14/registro_grupo03.txt 106 bytes, replicated: replication=3, 1 block(s):  OK
+0. BP-1669953691-172.21.0.2-1791738892917:blk_1073741832_1008 len=106 Live_repl=3
+   [DatanodeInfoWithStorage[172.21.0.3:9866,...,DISK],   <- datanode1
+    DatanodeInfoWithStorage[172.21.0.5:9866,...,DISK],   <- datanode3
+    DatanodeInfoWithStorage[172.21.0.4:9866,...,DISK]]   <- datanode2
+Status: HEALTHY
+```
+
+![Archivo en el explorador de HDFS](evidencias/capturas/03_hdfs_explorer_grupo03.png)
+
+### Interpretación
+
+- El archivo de 106 bytes ocupa **1 bloque**, porque es mucho más chico que el tamaño de bloque (128 MB).
+- El bloque tiene **3 réplicas vivas**, una en cada DataNode (las IPs coinciden con
+  [`04_red_hadoop_network.txt`](evidencias/salidas/04_red_hadoop_network.txt)). Así se comprueba que el
+  almacenamiento está distribuido.
+- El factor de replicación es 3 porque, en LG14, `hdfs-site.xml` no lo define y Hadoop usa su valor por defecto.
+- El NameNode solo guarda los metadatos (nombre, bloque, ubicaciones); el contenido está en los DataNodes.
+- YARN tiene **1 NodeManager** activo ([`12_yarn_nodos.txt`](evidencias/salidas/12_yarn_nodos.txt)),
+  con los 16 GB y 8 vCores que declara `yarn-site.xml`:
+
+![Nodos de YARN](evidencias/capturas/04_yarn_resourcemanager_nodes.png)
+
+---
+
+## 6. Comparación con big-data-europe/docker-hadoop
+
+| Característica | docker-hadoop | hadoop-environment (seleccionado) |
+|---|---|---|
+| Tecnología principal | Hadoop 3.2.1 (HDFS + YARN + MapReduce) | Hadoop 3.3.6 (HDFS + YARN + MapReduce) |
+| Docker | Sí, imágenes ya publicadas en Docker Hub (`bde2020/hadoop-*`, Java 8) | Sí, imágenes **construidas localmente** desde una base propia (`hadoop-base:3.3.6`, Java 11) |
+| Docker Compose | Sí (`docker-compose.yml`; además `docker-compose-v3.yml` para Docker Swarm) | Sí (`docker-compose.yml` con `build:` por servicio) |
+| Número de contenedores | 5: namenode, datanode, resourcemanager, nodemanager, historyserver | 7: namenode, 3 datanodes, resourcemanager, nodemanager1, historyserver |
+| Almacenamiento distribuido | HDFS con **1 DataNode**: los datos no se reparten entre nodos | HDFS con **3 DataNodes**: cada bloque se replica en los tres |
+| Procesamiento distribuido | YARN con 1 NodeManager | YARN con 1 NodeManager |
+| Interfaces web | NameNode 9870 publicado en el host; el resto (8088, 8042, 8188, 9864) se accede por la IP del contenedor | NameNode 9870, ResourceManager 8089, NodeManager 8042 e History Server 8188 publicados en `localhost` |
+| Persistencia | 3 volúmenes con nombre (namenode, datanode, historyserver) | 5 volúmenes con nombre (namenode, 3 datanodes, historyserver) + bind mounts `./data` y `./map_reduce` |
+| Configuración | Variables de entorno en `hadoop.env` (`CORE_CONF_*`, `HDFS_CONF_*`), que un script convierte en XML | Archivos XML en `conf/` copiados a la imagen |
+| Orden de arranque | `SERVICE_PRECONDITION`: cada servicio espera a que respondan los puertos de los que depende | `depends_on` (solo orden de arranque) + `restart: on-failure` en el ResourceManager + `HEALTHCHECK` |
+| Complejidad de instalación | Baja: `docker compose up` descarga imágenes listas | Media: crear la red externa, construir la imagen base y luego el Compose. Además hubo que **corregir el `Dockerfile`** porque sus imágenes base cambiaron |
+| Documentación | README breve: arranque, URLs de las interfaces y cómo configurar con variables de entorno | README tipo tutorial que repite el `Dockerfile` y el Compose, sin explicar pruebas ni configuración. Sin archivo `LICENSE` |
+| Popularidad | ~2 300 estrellas, ~1 400 forks | 5 estrellas, 0 forks |
+| Caso de uso | Imágenes base reutilizables: la organización las usa como base de otros proyectos (por ejemplo, `docker-hive`) | Laboratorio local para aprender cómo se reparte un clúster multinodo y ejecutar MapReduce |
+
+**Diferencias principales.** Los dos siguen el mismo modelo, un demonio de Hadoop por contenedor, pero
+con propósitos distintos. `docker-hadoop` prioriza la facilidad: imágenes listas y configuración
+mediante variables, aunque con un solo DataNode, que no permite ver la replicación real. `hadoop-environment`
+prioriza parecerse a un clúster real: tres DataNodes, versión más nueva de Hadoop y todas las interfaces
+web publicadas. A cambio, exige construir las imágenes y depende de imágenes base externas que cambian
+con el tiempo, como se vio al tener que corregir el `Dockerfile`.
+
+---
+
+## 7. Problemas encontrados y soluciones
 
 | Problema | Causa | Solución |
-| --- | --- | --- |
-| `ls -la` falla | En PowerShell `ls` es `Get-ChildItem` | `ls -Force` |
-| Presto no arranca: puerto 8080 ocupado | El listener de Oracle (`TNSLSNR`) usa 8080 en el equipo | `docker-compose.override.yml` publica Presto en 8081 sin tocar el compose original |
-| Aviso `version is obsolete` | Compose v2 ignora la clave `version` | Ninguna, es solo un aviso |
-| Réplica 3 con un solo DataNode | `dfs.replication` queda en su valor por defecto | Ninguna para la prueba. Para un clúster real habría que agregar DataNodes o poner `HDFS_CONF_dfs_replication=1` |
-| Scripts `.sh` con finales de línea de Windows | Git en Windows convierte LF a CRLF y `bash` falla con `\r` | Los scripts `.ps1` convierten a LF antes de copiar al contenedor y `.gitattributes` fuerza LF en `*.sh` |
+|---|---|---|
+| El build no puede descargar `openjdk:11-jdk` | La imagen `openjdk` fue retirada de Docker Hub | Usar `eclipse-temurin:11-jdk` y copiar Java desde `/opt/java/openjdk` |
+| `apt-get` no encuentra el paquete `software-properties-common` | `python:3.11` pasó a Debian 13 (trixie), que ya no lo incluye | Fijar `python:3.11-bookworm` (Debian 12) |
+| Riesgo de `/bin/bash^M: bad interpreter` en los `run.sh` | Git para Windows convierte los finales de línea a CRLF | Clonar con `-c core.autocrlf=false`; en este repo, `.gitattributes` fuerza LF en `*.sh` |
+| `failed to read dockerfile: open Dockerfile` | `docker build` se ejecutó fuera de la carpeta del repositorio clonado | Ejecutar los comandos de Docker dentro de `hadoop-environment` |
+| Aviso `the attribute version is obsolete` | Compose v2+ ya no usa el campo `version` | Solo es una advertencia; no afecta el despliegue |
+| Aviso `HADOOP_PREFIX has been replaced by HADOOP_HOME` | El `Dockerfile` define la variable antigua `HADOOP_PREFIX` | Solo es una advertencia; Hadoop usa el mismo valor |
+| `java: command not found` dentro del contenedor | El `Dockerfile` define `JAVA_HOME`, pero no agrega `$JAVA_HOME/bin` al `PATH` | Hadoop usa `JAVA_HOME` y funciona igual; para ver la versión se usa `$JAVA_HOME/bin/java -version` |
 
-## 8. Cómo repetir la ejecución
+---
 
-Desde PowerShell, con Docker Desktop encendido:
+## 8. LG15 — Tolerancia a fallos y replicación de datos en HDFS
+
+Sobre el mismo clúster de LG14 (1 NameNode y 3 DataNodes) se configuró un factor de replicación de 2,
+se cargaron dos datasets, de 1 GB y de 10 GB, y se detuvo un DataNode para observar qué hace HDFS
+antes, durante y después de la falla.
+
+| DataNode | IP | Hostname (contenedor) |
+|---|---|---|
+| `datanode1` | 172.21.0.3 | `f923690c5e80` |
+| `datanode2` | 172.21.0.4 | `2853bfb01ac8` |
+| `datanode3` | 172.21.0.5 | `bf0745605c86` |
+
+> Las horas de los archivos de evidencia están en **UTC** (reloj del contenedor). Las capturas de la
+> interfaz web muestran la hora local de Bolivia (**UTC−4**).
+
+### 8.1 Cambios en la configuración
+
+Se agregaron dos propiedades a [`conf/hdfs-site.xml`](hadoop-environment/conf/hdfs-site.xml):
+
+| Propiedad | Valor | Motivo |
+|---|---|---|
+| `dfs.replication` | `2` | Requisito de la práctica (factor ≥ 2). Sin esta propiedad Hadoop usa 3 |
+| `dfs.namenode.heartbeat.recheck-interval` | `30000` (30 s) | El NameNode declara muerto a un DataNode tras `2 × recheck-interval + 10 × heartbeat` = 2 × 30 s + 10 × 3 s = **90 s**. Con el valor por defecto (5 min) serían **10,5 min** |
+
+Como `conf/` se copia dentro de la imagen base, hay que reconstruir las imágenes:
 
 ```powershell
-.\scripts\desplegar.ps1                 # clona, lista archivos, docker compose up -d y docker ps
-.\scripts\prueba-hdfs.ps1               # crear directorio, cargar y consultar en HDFS
-.\scripts\prueba-hive.ps1               # tabla externa y SELECT con Beeline
+docker compose down -v                  # -v borra los volúmenes: HDFS arranca vacío
+docker build -t hadoop-base:3.3.6 .
+docker compose up -d --build
+docker exec namenode hdfs getconf -confKey dfs.replication    # muestra 2
 ```
 
-Si el puerto 8080 está ocupado en el equipo, usar `.\scripts\desplegar.ps1 -PrestoEn8081`, que copia el override antes de levantar el clúster.
+### 8.2 Estructura en HDFS y datasets
 
-Para apagar el clúster sin borrar los volúmenes de HDFS:
-
-```powershell
-Set-Location "$env:USERPROFILE\source\docker-hive"
-docker compose stop
+```bash
+docker exec -it namenode bash
+hdfs dfs -mkdir -p /grupo03/dataset_1GB /grupo03/dataset_10GB /grupo03/resultados /grupo03/evidencias
+head -c 1G  /dev/urandom | hdfs dfs -put - /grupo03/dataset_1GB/dataset_grupo03_1GB
+head -c 10G /dev/urandom | hdfs dfs -put - /grupo03/dataset_10GB/dataset_grupo03_10GB
 ```
 
-`docker compose down -v` sí borra los volúmenes `namenode` y `datanode`.
-
-## 9. Conclusiones
-
-- docker-hive no es un clúster Hadoop completo: reutiliza solo la parte de almacenamiento (HDFS) de las imágenes de docker-hadoop y le agrega una capa de almacén de datos SQL. No tiene YARN, así que las consultas de Hive se ejecutan en modo local dentro de HiveServer2.
-- La separación entre datos y metadatos es la idea central: los archivos viven en HDFS (con volúmenes persistentes) y el esquema de las tablas vive en PostgreSQL (sin volumen). Por eso, al recrear el contenedor de PostgreSQL, los archivos sobreviven pero las tablas hay que volver a declararlas.
-- La configuración se hace por variables de entorno (`CORE_CONF_*`, `HDFS_CONF_*`, `HIVE_SITE_CONF_*`) que `entrypoint.sh` traduce a XML al arrancar. Esto permite cambiar Hadoop o Hive sin reconstruir imágenes, pero un prefijo mal escrito, como `HIVE_CORE_CONF_` en `hive-server`, se ignora sin dar error.
-- El orden de arranque depende de `SERVICE_PRECONDITION` y no de `depends_on`: cada contenedor espera activamente a que el puerto del anterior responda, lo que es más fiable que solo esperar a que el contenedor exista.
-- La prueba confirmó el ciclo completo que pide la guía (crear directorio, cargar archivo y consultarlo en HDFS) y, además, que Hive puede consultar ese mismo archivo como tabla SQL sin moverlo.
-
-## Estructura de este repositorio
+Los datos aleatorios se envían directo a HDFS por la entrada estándar (`-put -`), sin crear archivos de
+1 GB y 10 GB en el disco local. Resultado ([`estructura_grupo03.txt`](evidencias/lg15/estructura_grupo03.txt)),
+donde el **2** de la segunda columna es el factor de replicación:
 
 ```text
-README.md
-.gitignore
-.gitattributes   fuerza LF en *.sh, *.env y *.yml
-config/          copias de docker-compose.yml, hadoop-hive.env, Dockerfile,
-                 entrypoint.sh, startup.sh, Makefile y conf/ del commit 502fa269,
-                 más el override local del puerto 8081
-docs/            diagrama de la arquitectura real (SVG y PNG)
-scripts/         despliegue y pruebas (PowerShell + bash)
-evidencias/      capturas y salidas de docker ps, HDFS, UI del NameNode y Hive
+drwxr-xr-x   - root supergroup           0 2026-10-12 02:55 /grupo03/dataset_10GB
+-rw-r--r--   2 root supergroup 10737418240 2026-10-12 02:55 /grupo03/dataset_10GB/dataset_grupo03_10GB
+drwxr-xr-x   - root supergroup           0 2026-10-12 02:40 /grupo03/dataset_1GB
+-rw-r--r--   2 root supergroup  1073741824 2026-10-12 02:40 /grupo03/dataset_1GB/dataset_grupo03_1GB
+drwxr-xr-x   - root supergroup           0 2026-10-12 03:24 /grupo03/evidencias
+drwxr-xr-x   - root supergroup           0 2026-10-12 03:25 /grupo03/resultados
 ```
 
-El `.gitignore` es propio de este informe. No usa una plantilla de lenguaje de GitHub: el repositorio no es una aplicación Java o Python, y una plantilla de ese tipo ignoraría archivos que sí hay que entregar. Ignora datos locales de HDFS, logs, secretos `.env` y el clon de trabajo.
+Las evidencias de esta práctica también se cargaron a `/grupo03/evidencias/`, y los resúmenes finales
+(`*_despues.txt` y `*_esperar.txt`) a `/grupo03/resultados/`.
+
+### 8.3 Procedimiento de la prueba de fallo
+
+En las dos pruebas se detuvo el mismo nodo, **`datanode2`**, con `docker stop datanode2`.
+
+**Comandos de verificación.** En cada momento se revisó lo que pide la práctica:
+
+| Qué se verifica | Comando |
+|---|---|
+| Estado de los DataNodes (vivos, muertos, último contacto) | `hdfs dfsadmin -report` |
+| Estado del archivo, bloques, réplicas y ubicación de cada réplica | `hdfs fsck /grupo03/dataset_1GB -files -blocks -locations` |
+| Si el archivo se puede leer completo y sin cambios | `hdfs dfs -cat /grupo03/dataset_1GB/dataset_grupo03_1GB \| md5sum` |
+
+El experimento de 1 GB se hizo con esos comandos por separado (archivos `1GB_00` a `1GB_06`). Para el de
+10 GB se juntaron en el script [`scripts/lg15.sh`](scripts/lg15.sh), que guarda un resumen legible con la
+cabecera `GRUPO 03` en `<dataset>_<momento>.txt`. El script se copia a `hadoop-environment/data/lg15/`,
+que el `namenode` ve como `/hadoop-data/input/lg15`:
+
+| Paso | Dónde | Comando |
+|---|---|---|
+| 1. Estado inicial y lectura con md5 | NameNode | `bash lg15.sh 10GB antes leer` |
+| 2. Provocar la falla | PowerShell | `docker stop datanode2` |
+| 3. Estado inmediatamente después | NameNode | `bash lg15.sh 10GB durante` |
+| 4. Monitorear cada 5 s hasta que no queden bloques subreplicados | NameNode | `bash lg15.sh 10GB esperar` |
+| 5. Estado final y lectura, con el nodo todavía caído | NameNode | `bash lg15.sh 10GB despues leer` |
+| 6. Devolver el nodo y revisar | PowerShell + NameNode | `docker start datanode2` y luego `bash lg15.sh 10GB restaurado` |
+
+Desde PowerShell, sin entrar al contenedor, se ejecuta así:
+
+```powershell
+docker exec -w /hadoop-data/input/lg15 namenode bash lg15.sh 10GB antes leer
+```
+
+### 8.4 Resultados con el dataset de 1 GB
+
+**Antes de la falla** ([`1GB_00`](evidencias/lg15/1GB_00_md5_antes.txt),
+[`1GB_01`](evidencias/lg15/1GB_01_antes_report.txt), [`1GB_02`](evidencias/lg15/1GB_02_antes_fsck.txt),
+[`1GB_03`](evidencias/lg15/1GB_03_antes_replicas_por_nodo.txt)): 3 DataNodes vivos, 8 bloques de 128 MB
+con 2 réplicas cada uno (16 réplicas) y md5 de referencia `5a501fddc25e4eb00b32f0038d22ddb8`.
+
+| Bloque | Réplicas | ¿Tenía réplica en `datanode2`? |
+|---|---|---|
+| 0 `blk_1073741832` | datanode2, datanode1 | Sí |
+| 1 `blk_1073741833` | datanode3, datanode1 | No |
+| 2 `blk_1073741834` | datanode2, datanode1 | Sí |
+| 3 `blk_1073741835` | datanode1, datanode3 | No |
+| 4 `blk_1073741836` | datanode1, datanode2 | Sí |
+| 5 `blk_1073741837` | datanode3, datanode2 | Sí |
+| 6 `blk_1073741838` | datanode1, datanode2 | Sí |
+| 7 `blk_1073741839` | datanode3, datanode2 | Sí |
+| **Réplicas por nodo** | datanode1: 6 · datanode2: 6 · datanode3: 4 | **6 de 8 bloques afectados** |
+
+**Durante la falla** ([`1GB_04`](evidencias/lg15/1GB_04_durante_report.txt),
+[`1GB_05`](evidencias/lg15/1GB_05_durante_fsck.txt), [`1GB_06`](evidencias/lg15/1GB_06_durante_md5.txt)),
+un minuto después de detener `datanode2`:
+
+- El NameNode todavía lo listaba como vivo (`Live datanodes (3)`), pero su `Last contact` quedó congelado
+  en 02:44:08 mientras los otros dos se actualizaban. Todavía no se cumplían los 90 s para declararlo muerto.
+- La lectura del archivo funcionó y el md5 coincidió. El log del cliente muestra cómo se salta el nodo caído:
+
+```text
+WARN hdfs.DFSClient: Failed to connect to 2853bfb01ac8:9866 for file /grupo03/dataset_1GB/dataset_grupo03_1GB
+     for block ...blk_1073741832_1008, add to deadNodes and continue.
+INFO hdfs.DFSClient: Successfully connected to f923690c5e80/172.21.0.3:9866 for ...blk_1073741832_1008
+5a501fddc25e4eb00b32f0038d22ddb8  -
+```
+
+**Después de la recuperación** ([`1GB_despues`](evidencias/lg15/1GB_despues.txt), con `datanode2` todavía
+detenido): `Status: HEALTHY`, 0 bloques subreplicados, replicación promedio 2,0 y md5 idéntico. Las
+**6 réplicas nuevas** se crearon en los nodos que no tenían el bloque: 2 en `datanode1` (bloques 5 y 7)
+y 4 en `datanode3` (bloques 0, 2, 4 y 6). Ahora hay 8 réplicas en cada uno.
+
+> `1GB_despues.txt` se registró a las 03:03, cuando `datanode2` estaba detenido de nuevo por la prueba de
+> 10 GB. El archivo de 1 GB ya no tenía réplicas en ese nodo desde su propia recuperación, así que la
+> segunda falla no lo afectó y su distribución es la que dejó la primera.
+
+**Nodo restaurado** ([`1GB_restaurado`](evidencias/lg15/1GB_restaurado.txt)): al volver, `datanode2`
+reportó sus 6 réplicas antiguas. Esos bloques quedaron con 3 copias (sobrereplicados) y el NameNode
+borró las sobrantes. El archivo quedó con 8 réplicas en `datanode1` y 8 en `datanode3`, y ninguna en
+`datanode2`.
+
+### 8.5 Resultados con el dataset de 10 GB
+
+| Momento | Evidencia | DataNodes | Bloques subreplicados | Replicación promedio | Réplicas por nodo (dn1 / dn2 / dn3) | Lectura (md5) |
+|---|---|---|---|---|---|---|
+| Antes (02:55) | [`10GB_antes`](evidencias/lg15/10GB_antes.txt) | 3 vivos | 0 | 2,0 | 48 / 56 / 56 | OK `14937391c0e91ea45f020fde00fe2993` (38 s) |
+| Durante, ~1 min (02:57) | [`10GB_durante`](evidencias/lg15/10GB_durante.txt) | 3 "vivos"; dn2 con `Last contact` congelado en 02:56:50 | 0 | 2,0 | 48 / 56 / 56 | — |
+| Durante, ~2 min (02:58) | [`10GB_durante_recuperacion`](evidencias/lg15/10GB_durante_recuperacion.txt) | 2 vivos, **1 muerto** | **50 (62,5 %)** | 1,375 | 52 / — / 58 | — |
+| Después (03:03) | [`10GB_despues`](evidencias/lg15/10GB_despues.txt) | 2 vivos, 1 muerto | 0 | 2,0 | 80 / — / 80 | OK, md5 idéntico (45 s) |
+| Nodo restaurado (03:04) | [`10GB_restaurado`](evidencias/lg15/10GB_restaurado.txt) | 3 vivos | 0 | 2,0 | 80 / 0 / 80 | — |
+
+- Antes de la falla, **56 de los 80 bloques** tenían una réplica en `datanode2`. Los otros 24 estaban en
+  `datanode1` y `datanode3`. El detalle bloque por bloque está en `10GB_antes.txt`.
+- A los 2 minutos el NameNode ya había declarado muerto a `datanode2`, había descontado sus réplicas y
+  estaba re-replicando: 6 bloques ya tenían su segunda copia y quedaban 50. En ningún momento hubo
+  bloques perdidos (`Missing blocks: 0`) y el estado siguió siendo `HEALTHY`.
+- Las **56 réplicas nuevas** se repartieron en 32 para `datanode1` (48 → 80) y 24 para `datanode3` (56 → 80).
+- Al restaurar `datanode2`, sus réplicas antiguas sobraban y se borraron. El nodo volvió vacío porque
+  HDFS **no rebalancea automáticamente**: para repartir de nuevo los bloques se usa `hdfs balancer`.
+- La cabecera de `10GB_durante_recuperacion.txt` dice "Momento: restaurado" porque se generó con ese
+  argumento por error; luego se renombró el archivo según el momento real (`datanode2` seguía caído).
+
+### 8.6 Medición del tiempo de recuperación
+
+En las pruebas anteriores no quedó registrado el instante exacto en que los bloques subreplicados
+llegaron a 0. Por eso se repitió la falla solo para medir el tiempo: se detuvo `datanode2` a las
+03:13 UTC y se dejó corriendo `bash lg15.sh 1GB esperar` y `bash lg15.sh 10GB esperar` al mismo tiempo
+([`1GB_esperar`](evidencias/lg15/1GB_esperar.txt), [`10GB_esperar`](evidencias/lg15/10GB_esperar.txt)).
+Por las redistribuciones anteriores, en esta repetición `datanode2` tenía una réplica de **todos** los
+bloques: 8 de 8 y 80 de 80.
+
+| Segundos desde la detención | Qué pasó | 1 GB | 10 GB |
+|---|---|---|---|
+| 0 – 82 s | El NameNode sigue viendo 3 nodos vivos | 0 subreplicados | 0 subreplicados |
+| **93 s** | `Dead datanodes (1)`: `datanode2` declarado muerto | 8 réplicas todavía asignadas al nodo caído | 80 réplicas todavía asignadas al nodo caído |
+| 115 s | El NameNode descuenta las réplicas del nodo muerto | 7 subreplicados | 77 subreplicados |
+| 115 – 259 s | Re-replicación: los subreplicados bajan en cada lectura | 7 → 1 | 77 → 5 |
+| **270 s** | Recuperación completa | 0 | 0 |
+
+- **Detección: 93 s**, coherente con los 90 s calculados en la sección 8.1.
+- Entre los 93 s y los 115 s, `dfsadmin -report` ya mostraba el nodo como muerto, pero `fsck` seguía
+  contando sus réplicas. El reporte calcula el estado en el momento, a partir del último contacto. En
+  cambio, el monitor de heartbeats del NameNode, que es el que quita las réplicas del mapa de bloques y
+  encola la re-replicación, corre cada `recheck-interval` (30 s).
+- **Recuperación completa: 270 s (4 min 30 s)**. Se re-replicaron 88 bloques (unos 11 GB) en unos
+  155 s, cerca de 0,55 bloques por segundo (~70 MB/s). El NameNode no copia todo a la vez: en cada
+  iteración (cada 3 s) ordena una cantidad limitada de copias por DataNode vivo, y cada copia mueve
+  128 MB entre DataNodes.
+- El dataset de 1 GB terminó al mismo tiempo que el de 10 GB porque la cola de re-replicación del
+  NameNode trabaja **por bloque, no por archivo**: sus 8 bloques se intercalaron con los 80 del otro
+  dataset (en `1GB_esperar.txt` bajan de a uno entre los 115 s y los 270 s). A la misma velocidad, el
+  dataset de 1 GB solo habría necesitado unos 15 s tras la detección (estimado, no medido).
+
+### 8.7 Capturas de la interfaz web
+
+Se tomaron en una repetición adicional de la falla (11/10/2026, 23:19 a 23:24 hora local), solo para
+registrar la interfaz web del NameNode (http://localhost:9870). El contador de la web incluye todos los
+bloques del sistema de archivos, no solo los de los datasets.
+
+**Antes de la falla:** los 3 DataNodes en servicio. `datanode1` aparece con 0 bloques porque, tras las
+pruebas anteriores, las réplicas quedaron en `datanode2` y `datanode3`. La captura
+[`05_lg15_datanodes_inicial.png`](evidencias/capturas/05_lg15_datanodes_inicial.png) muestra el clúster
+antes de cargar los datasets.
+
+![DataNodes antes de la falla](evidencias/capturas/06_lg15_datanodes_antes_falla.png)
+
+**Durante la falla:** `datanode2` (172.21.0.4) aparece en rojo, como caído:
+
+![datanode2 caído](evidencias/capturas/08_lg15_datanodes_durante_dead.png)
+
+En el Overview aparecen `Dead Nodes: 1` y `Number of Under-Replicated Blocks: 99`:
+
+![Bloques subreplicados en el Overview](evidencias/capturas/09_lg15_overview_durante_subreplicados.png)
+
+**Después de la recuperación:** `datanode2` sigue caído, pero los bloques subreplicados volvieron a 0
+([`10_lg15_overview_recuperado.png`](evidencias/capturas/10_lg15_overview_recuperado.png)).
+
+**Nodo restaurado:** `datanode2` vuelve con **0 bloques** y los otros dos tienen 109 cada uno. Así se
+comprueba que HDFS no rebalancea automáticamente:
+
+![DataNodes con el nodo restaurado](evidencias/capturas/11_lg15_datanodes_restaurado.png)
+
+### 8.8 Análisis
+
+| Pregunta | Dataset de 1 GB | Dataset de 10 GB |
+|---|---|---|
+| **Antes:** ¿cuántos bloques tenía el archivo? | 8 | 80 |
+| ¿Cuántas réplicas tenía cada bloque? | 2 (`Live_repl=2`) | 2 |
+| ¿En qué DataNodes estaban? | En los tres: datanode1 6, datanode2 6, datanode3 4 (detalle en la sección 8.4) | En los tres: datanode1 48, datanode2 56, datanode3 56 |
+| **Durante:** ¿qué DataNode fue detenido? | `datanode2` (172.21.0.4) | `datanode2` (172.21.0.4) |
+| ¿Qué bloques estaban almacenados en él? | 6 de 8: los bloques 0, 2, 4, 5, 6 y 7 | 56 de 80 |
+| ¿Existían otras réplicas? | Sí: cada bloque tenía su otra réplica en `datanode1` o `datanode3` | Sí, para los 56 bloques |
+| ¿El archivo continuó disponible? | Sí: lectura completa con md5 idéntico. El cliente falló al conectar con `datanode2` y leyó de `datanode1` | Sí: lectura completa con md5 idéntico con `datanode2` caído |
+| ¿Qué cambió en HDFS? | Durante ~90 s solo se congeló el `Last contact` del nodo. Luego pasó a `Dead`, sus réplicas se descontaron y los bloques afectados quedaron subreplicados | Lo mismo: a los 2 minutos había 50 bloques subreplicados y la replicación promedio bajó a 1,375 |
+| **Después:** ¿qué estado reporta HDFS? | `HEALTHY`, replicación promedio 2,0, 0 bloques perdidos | `HEALTHY`, replicación promedio 2,0, 0 bloques perdidos |
+| ¿Existen bloques subreplicados? | No, 0 | No, 0 |
+| ¿HDFS intenta recuperar automáticamente las réplicas? | Sí, sin ninguna intervención | Sí, sin ninguna intervención |
+| ¿En qué DataNode se generaron las nuevas réplicas? | 2 en `datanode1` y 4 en `datanode3` | 32 en `datanode1` y 24 en `datanode3` |
+
+**Por qué ocurrió.** El NameNode guarda el mapa de bloques: qué bloques forman cada archivo y en qué
+DataNodes está cada réplica. Cada DataNode le envía un *heartbeat* cada 3 s y, periódicamente, la lista de
+bloques que tiene. Cuando `datanode2` dejó de enviar heartbeats, el NameNode esperó el plazo configurado
+(90 s) y lo declaró muerto. Entonces quitó sus réplicas del mapa, y los bloques que quedaron con menos
+réplicas que el factor configurado entraron a la cola de re-replicación. Para cada uno, el NameNode le
+ordenó a un DataNode que tenía la réplica sana copiarla a otro DataNode que no tuviera ese bloque. Con
+3 nodos, uno caído y factor 2, el destino es siempre el único nodo vivo que no tiene el bloque. Por eso
+el bloque 0 (datanode2 + datanode1) recibió su nueva réplica en `datanode3`, y el bloque 5
+(datanode3 + datanode2) en `datanode1`. Mientras tanto, el cliente nunca perdió acceso: le pide al
+NameNode las ubicaciones de cada bloque y, si una réplica no responde, lee la otra.
+
+### 8.9 Preguntas para la exposición
+
+**1. ¿Por qué HDFS puede continuar proporcionando el archivo aunque un DataNode haya fallado?**
+Porque cada bloque tiene 2 réplicas en DataNodes distintos: HDFS nunca pone dos réplicas del mismo bloque
+en el mismo nodo. Al leer, el cliente recibe del NameNode la lista de ubicaciones de cada bloque y, si una
+falla, usa la siguiente. Se ve en `1GB_06_durante_md5.txt`: `Failed to connect to 2853bfb01ac8:9866 ...
+add to deadNodes and continue`, seguido de `Successfully connected to f923690c5e80`, y el md5 es idéntico.
+
+**2. ¿Qué habría ocurrido si el factor de replicación hubiera sido 1?**
+Cada bloque existiría en un solo DataNode. Al caer `datanode2`, los bloques que solo estaban ahí
+(aproximadamente un tercio) habrían quedado como *missing* y `fsck` habría marcado el archivo como
+`CORRUPT`. La lectura habría fallado al llegar al primero de esos bloques (`BlockMissingException`).
+Tampoco habría re-replicación, porque no queda ninguna copia de origen. Los datos solo volverían si el
+nodo regresa con su disco intacto.
+
+**3. ¿Qué habría ocurrido si hubieran fallado dos DataNodes simultáneamente?**
+Con factor 2, los bloques que tenían sus dos réplicas justo en esos dos nodos se habrían perdido y el
+archivo no se podría leer completo. Con la distribución inicial del dataset de 1 GB: si fallaban
+`datanode1` y `datanode2`, se perdían 4 de 8 bloques (0, 2, 4 y 6); con `datanode2` y `datanode3`, 2
+bloques (5 y 7); y con `datanode1` y `datanode3`, otros 2 (1 y 3). Los bloques restantes seguirían
+legibles con una sola réplica, pero quedarían subreplicados de forma permanente: con un solo nodo vivo no
+hay un segundo nodo donde poner la otra copia. Si la segunda falla llega **después** de que terminó la
+re-replicación, no se pierde nada, porque los dos nodos restantes ya tienen todos los bloques. Por eso
+importa el tiempo de recuperación.
+
+**4. ¿Por qué un factor de replicación de 2 no significa necesariamente que existan dos copias completas del archivo en dos DataNodes?**
+Porque la replicación es **por bloque, no por archivo**: la ubicación de las 2 réplicas de cada bloque se
+decide por separado. Antes de la falla, ningún DataNode tenía el archivo de 1 GB completo (6, 6 y 4 de
+los 8 bloques). El archivo solo existe completo como la unión de los bloques repartidos en el clúster.
+Lo que garantiza el factor 2 es que cada bloque tiene 2 copias en 2 nodos distintos.
+
+**5. ¿Cuál es la relación entre tamaño de bloque y número de bloques?**
+Número de bloques = tamaño del archivo ÷ tamaño de bloque, redondeado hacia arriba. Con bloques de 128 MB:
+1 GB ÷ 128 MB = **8** bloques y 10 GB ÷ 128 MB = **80** bloques; el último bloque puede ser más chico. Un
+bloque más grande produce menos bloques, menos metadatos en el NameNode y menos paralelismo; uno más
+chico, lo contrario. Un archivo menor que un bloque ocupa 1 bloque solo de su tamaño real: el archivo de
+106 bytes de LG14 no ocupa 128 MB en disco.
+
+**6. ¿Por qué el dataset de 10 GB permite observar un comportamiento más representativo de un sistema distribuido que el dataset de 1 GB?**
+Porque tiene 10 veces más bloques (80 frente a 8). El reparto entre nodos se acerca a lo que hace HDFS a
+gran escala (48 / 56 / 56 frente a 6 / 6 / 4), y la caída afecta a muchos bloques a la vez (56). La
+re-replicación dura lo suficiente para verla avanzar: 50 subreplicados a los 2 minutos, que bajan poco a
+poco. Con 1 GB todo ocurre en segundos y con muy pocos bloques. También se nota el costo de mover datos
+entre nodos: la lectura completa tarda 38–45 s frente a 7 s.
+
+**7. ¿Qué sucede con los bloques que tenían una réplica en el DataNode que falló?**
+Durante los primeros ~90 s, nada: el NameNode todavía no sabe que el nodo cayó. Al declararlo muerto,
+descuenta esas réplicas y los bloques quedan subreplicados, pero siguen disponibles con su otra réplica.
+Luego el NameNode ordena copiarlos desde la réplica sana a otro nodo, hasta volver a 2. Si el nodo caído
+regresa, reporta sus réplicas antiguas; esos bloques quedan con 3 copias y el NameNode borra las
+sobrantes. En nuestras pruebas, a veces borró las del nodo que volvió y otras las de otro nodo, según su
+política de elección. HDFS no vuelve a repartir los bloques por su cuenta.
+
+**8. ¿Quién administra la ubicación y replicación de los bloques: el cliente, el DataNode o el NameNode?**
+El **NameNode**. Al escribir, decide en qué DataNodes va cada réplica. Además, mantiene el mapa de
+ubicaciones, detecta los nodos muertos por falta de heartbeats y ordena las re-replicaciones y los
+borrados de réplicas sobrantes. El cliente solo le pide las ubicaciones y luego lee o escribe los datos
+directamente con los DataNodes. Los DataNodes guardan los bloques, envían heartbeats y reportes de
+bloques, y ejecutan las copias que les ordena el NameNode.
+
+**9. ¿Qué diferencia existe entre disponibilidad del archivo y cumplimiento del factor de replicación después de una falla?**
+**Disponibilidad** significa que se puede leer el archivo completo: basta con que cada bloque tenga al
+menos 1 réplica viva. **Cumplimiento del factor** significa que cada bloque tiene las 2 réplicas
+configuradas. Durante la falla de 10 GB el archivo estaba **disponible**, pero **no cumplía el factor**:
+`10GB_durante_recuperacion.txt` muestra 50 bloques subreplicados, replicación promedio 1,375, y aun así
+`Status: HEALTHY`. `fsck` solo marca `CORRUPT` cuando faltan bloques. Tras la re-replicación se cumplen
+las dos condiciones. Mientras no se cumple el factor, una segunda falla sí podría causar pérdida de datos.
+
+### 8.10 Comparación entre ambos experimentos
+
+| Característica | Dataset 1 GB | Dataset 10 GB |
+|---|---|---|
+| Tamaño | 1 GB (1 073 741 824 bytes) | 10 GB (10 737 418 240 bytes) |
+| Número de bloques | 8 de 128 MB | 80 de 128 MB |
+| Factor de replicación | 2 (16 réplicas en total) | 2 (160 réplicas en total) |
+| DataNode afectado | `datanode2` (172.21.0.4) | `datanode2` (172.21.0.4) |
+| Bloques afectados | 6 de 8 (75 %) | 56 de 80 (70 %) |
+| Bloques disponibles después de la falla | 8 de 8 (0 perdidos) | 80 de 80 (0 perdidos) |
+| ¿Archivo accesible? | Sí, md5 idéntico (lectura de 7 s) | Sí, md5 idéntico (lectura de 38–45 s) |
+| ¿Existieron bloques subreplicados? | Sí: 7 en la medición de la sección 8.6 | Sí: 50 (62,5 %) a los 2 min; 77 en la medición |
+| Tiempo de recuperación | Detección a los 93 s y recuperación completa a los 270 s, compartiendo la cola con el dataset de 10 GB (solo habría tardado ~15 s tras la detección, estimado) | Detección a los 93 s y recuperación completa a los 270 s (4 min 30 s) |
+| Nuevas réplicas | 6: 2 en `datanode1` y 4 en `datanode3` | 56: 32 en `datanode1` y 24 en `datanode3` |
+
+**Conclusión.** En los dos casos HDFS mantuvo el archivo disponible y sin pérdida de datos, porque cada
+bloque afectado tenía su otra réplica en un nodo vivo. Además, recuperó el factor de replicación sin
+intervención. La diferencia está en la escala: con 10 GB, la falla afecta a decenas de bloques y la
+re-replicación se puede observar avanzando. Los dos datasets compiten por la misma cola de
+re-replicación del NameNode.
+
+### 8.11 Evidencias de LG15
+
+| Archivo | Contenido |
+|---|---|
+| [`1GB_00_md5_antes.txt`](evidencias/lg15/1GB_00_md5_antes.txt) | md5 de referencia del dataset de 1 GB |
+| [`1GB_01_antes_report.txt`](evidencias/lg15/1GB_01_antes_report.txt), [`1GB_02_antes_fsck.txt`](evidencias/lg15/1GB_02_antes_fsck.txt), [`1GB_03_antes_replicas_por_nodo.txt`](evidencias/lg15/1GB_03_antes_replicas_por_nodo.txt) | 1 GB antes de la falla: DataNodes, bloques y réplicas por nodo |
+| [`1GB_04_durante_report.txt`](evidencias/lg15/1GB_04_durante_report.txt), [`1GB_05_durante_fsck.txt`](evidencias/lg15/1GB_05_durante_fsck.txt), [`1GB_06_durante_md5.txt`](evidencias/lg15/1GB_06_durante_md5.txt) | 1 GB durante la falla, con la lectura que salta el nodo caído |
+| [`1GB_despues.txt`](evidencias/lg15/1GB_despues.txt), [`1GB_restaurado.txt`](evidencias/lg15/1GB_restaurado.txt) | 1 GB después de la recuperación y con el nodo devuelto |
+| [`10GB_antes.txt`](evidencias/lg15/10GB_antes.txt), [`10GB_durante.txt`](evidencias/lg15/10GB_durante.txt), [`10GB_durante_recuperacion.txt`](evidencias/lg15/10GB_durante_recuperacion.txt), [`10GB_despues.txt`](evidencias/lg15/10GB_despues.txt), [`10GB_restaurado.txt`](evidencias/lg15/10GB_restaurado.txt) | 10 GB en cada momento de la falla |
+| [`1GB_esperar.txt`](evidencias/lg15/1GB_esperar.txt), [`10GB_esperar.txt`](evidencias/lg15/10GB_esperar.txt) | Medición del tiempo de detección y de recuperación |
+| [`estructura_grupo03.txt`](evidencias/lg15/estructura_grupo03.txt) | Estructura de `/grupo03` en HDFS |
+| [`evidencias/capturas/05`–`11`](evidencias/capturas/) | Interfaz web del NameNode antes, durante y después de la falla |
+
+### 8.12 Problemas encontrados en LG15
+
+| Problema | Causa | Solución |
+|---|---|---|
+| El `namenode` se detiene con `Illegal to have multiple roots` | Las propiedades nuevas quedaron antes de `<configuration>` en `hdfs-site.xml` | Moverlas dentro de `<configuration>`, reconstruir la imagen base y volver a levantar el clúster |
+| Justo después del `docker stop`, HDFS sigue mostrando 3 nodos vivos | El NameNode espera 90 s sin heartbeats antes de declarar muerto un nodo | Es el comportamiento esperado; `lg15.sh esperar` registra el momento exacto |
+| El nodo aparece como muerto, pero `fsck` sigue contando sus réplicas | El monitor que descuenta las réplicas corre cada 30 s | `lg15.sh esperar` solo termina cuando no quedan réplicas en el nodo caído y no hay subreplicados |
+| Tras restaurar un nodo, una nueva falla de ese nodo no afecta a ningún bloque | HDFS no rebalancea: el nodo devuelto queda vacío | Revisar "Replicas por DataNode" antes de elegir qué nodo detener, o ejecutar `hdfs balancer` |
+| `docker exec namenode bash -c "..."` falla desde PowerShell | PowerShell altera las comillas y el `$` de los comandos de Bash | Ejecutar `docker exec -w /hadoop-data/input/lg15 namenode bash lg15.sh ...` |

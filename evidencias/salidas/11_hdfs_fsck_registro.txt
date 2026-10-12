@@ -1,0 +1,50 @@
+Grupo 03 - LG14
+Evidencia: Bloques y ubicacion de las replicas del archivo
+Comando: docker exec namenode hdfs fsck /grupo03/lg14/registro_grupo03.txt -files -blocks -locations
+Fecha: 2026-10-11 14:14:20 (UTC-4)
+----------------------------------------------------------------------
+Connecting to namenode via http://namenode:9870/fsck?ugi=root&files=1&blocks=1&locations=1&path=%2Fgrupo03%2Flg14%2Fregistro_grupo03.txt
+FSCK started by root (auth:SIMPLE) from /172.21.0.2 for path /grupo03/lg14/registro_grupo03.txt at Sun Oct 11 18:14:20 UTC 2026
+
+/grupo03/lg14/registro_grupo03.txt 106 bytes, replicated: replication=3, 1 block(s):  OK
+0. BP-1669953691-172.21.0.2-1791738892917:blk_1073741832_1008 len=106 Live_repl=3  [DatanodeInfoWithStorage[172.21.0.3:9866,DS-78ee753b-bc0e-4489-b7f6-7f563116c391,DISK], DatanodeInfoWithStorage[172.21.0.5:9866,DS-3df0279d-75f5-4a3c-bc68-03aeb6dc4c3d,DISK], DatanodeInfoWithStorage[172.21.0.4:9866,DS-8ddf8426-71e7-46d9-9dd0-fc53a031d31a,DISK]]
+
+
+Status: HEALTHY
+ Number of data-nodes:	3
+ Number of racks:		1
+ Total dirs:			0
+ Total symlinks:		0
+
+Replicated Blocks:
+ Total size:	106 B
+ Total files:	1
+ Total blocks (validated):	1 (avg. block size 106 B)
+ Minimally replicated blocks:	1 (100.0 %)
+ Over-replicated blocks:	0 (0.0 %)
+ Under-replicated blocks:	0 (0.0 %)
+ Mis-replicated blocks:		0 (0.0 %)
+ Default replication factor:	3
+ Average block replication:	3.0
+ Missing blocks:		0
+ Corrupt blocks:		0
+ Missing replicas:		0 (0.0 %)
+ Blocks queued for replication:	0
+
+Erasure Coded Block Groups:
+ Total size:	0 B
+ Total files:	0
+ Total block groups (validated):	0
+ Minimally erasure-coded block groups:	0
+ Over-erasure-coded block groups:	0
+ Under-erasure-coded block groups:	0
+ Unsatisfactory placement block groups:	0
+ Average block group size:	0.0
+ Missing block groups:		0
+ Corrupt block groups:		0
+ Missing internal blocks:	0
+ Blocks queued for replication:	0
+FSCK ended at Sun Oct 11 18:14:20 UTC 2026 in 6 milliseconds
+
+
+The filesystem under path '/grupo03/lg14/registro_grupo03.txt' is HEALTHY

@@ -1,0 +1,14 @@
+Grupo 03 - LG14
+Evidencia: Imagenes construidas localmente
+Comando: docker images --filter reference=hadoop-base --filter reference=hadoop-environment*
+Fecha: 2026-10-11 14:14:07 (UTC-4)
+----------------------------------------------------------------------
+IMAGE                                       ID             DISK USAGE   CONTENT SIZE   EXTRA
+hadoop-base:3.3.6                           147e5c034b6a       4.17GB         1.28GB        
+hadoop-environment-datanode1:latest         ad6632549fce       4.17GB         1.28GB   U    
+hadoop-environment-datanode2:latest         9a5dd8b2cf53       4.17GB         1.28GB   U    
+hadoop-environment-datanode3:latest         355e39e06e7a       4.17GB         1.28GB   U    
+hadoop-environment-historyserver:latest     806366874c79       4.17GB         1.28GB   U    
+hadoop-environment-namenode:latest          d82be76196e6       4.17GB         1.28GB   U    
+hadoop-environment-nodemanager1:latest      b07f04ae5d40       4.17GB         1.28GB   U    
+hadoop-environment-resourcemanager:latest   ba8960419e83       4.17GB         1.28GB   U    

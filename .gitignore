@@ -1,24 +1,13 @@
-# Sistema operativo
-.DS_Store
+# Datasets grandes (LG15) y datos locales
+datasets/
+dataset_grupo03_*
+
+# Sistema operativo y editores
 Thumbs.db
 desktop.ini
-
-# Secretos locales. config/hadoop-hive.env se versiona a propósito:
-# son las credenciales de ejemplo publicadas por big-data-europe/docker-hive.
-.env
-.env.*
-!.env.example
-
-# Datos generados si se montan volúmenes dentro de este directorio
-data/
-volumes/
-tmp/
-*.log
-
-# Clon de trabajo del repositorio analizado
-upstream/
-
-# IDE
-.idea/
+.DS_Store
 .vscode/
-*.swp
+.idea/
+
+# Logs
+*.log

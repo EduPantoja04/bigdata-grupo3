@@ -1,0 +1,13 @@
+Grupo 03 - LG14
+Evidencia: Red hadoop_network y direcciones IP
+Comando: docker network inspect hadoop_network --format "{{range .Containers}}{{.Name}}  {{.IPv4Address}}{{println}}{{end}}"
+Fecha: 2026-10-11 14:14:06 (UTC-4)
+----------------------------------------------------------------------
+historyserver  172.21.0.7/16
+nodemanager1  172.21.0.6/16
+datanode3  172.21.0.5/16
+datanode1  172.21.0.3/16
+datanode2  172.21.0.4/16
+namenode  172.21.0.2/16
+resourcemanager  172.21.0.8/16
+

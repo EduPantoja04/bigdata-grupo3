@@ -1,0 +1,55 @@
+GRUPO 03 - 2026-10-12 02:45:13
+WARNING: HADOOP_PREFIX has been replaced by HADOOP_HOME. Using value of HADOOP_PREFIX.
+Connecting to namenode via http://namenode:9870/fsck?ugi=root&files=1&blocks=1&locations=1&path=%2Fgrupo03%2Fdataset_1GB
+FSCK started by root (auth:SIMPLE) from /172.21.0.2 for path /grupo03/dataset_1GB at Mon Oct 12 02:45:16 UTC 2026
+
+/grupo03/dataset_1GB <dir>
+/grupo03/dataset_1GB/dataset_grupo03_1GB 1073741824 bytes, replicated: replication=2, 8 block(s):  OK
+0. BP-259154433-172.21.0.2-1791771762933:blk_1073741832_1008 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.4:9866,DS-c329a305-912c-4212-aa22-315d23748bb0,DISK], DatanodeInfoWithStorage[172.21.0.3:9866,DS-239350d2-5cfb-4301-9894-6f64ce06e180,DISK]]
+1. BP-259154433-172.21.0.2-1791771762933:blk_1073741833_1009 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.5:9866,DS-2102a858-8c8c-43a6-afe0-d98bf6d2a452,DISK], DatanodeInfoWithStorage[172.21.0.3:9866,DS-239350d2-5cfb-4301-9894-6f64ce06e180,DISK]]
+2. BP-259154433-172.21.0.2-1791771762933:blk_1073741834_1010 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.4:9866,DS-c329a305-912c-4212-aa22-315d23748bb0,DISK], DatanodeInfoWithStorage[172.21.0.3:9866,DS-239350d2-5cfb-4301-9894-6f64ce06e180,DISK]]
+3. BP-259154433-172.21.0.2-1791771762933:blk_1073741835_1011 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.3:9866,DS-239350d2-5cfb-4301-9894-6f64ce06e180,DISK], DatanodeInfoWithStorage[172.21.0.5:9866,DS-2102a858-8c8c-43a6-afe0-d98bf6d2a452,DISK]]
+4. BP-259154433-172.21.0.2-1791771762933:blk_1073741836_1012 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.3:9866,DS-239350d2-5cfb-4301-9894-6f64ce06e180,DISK], DatanodeInfoWithStorage[172.21.0.4:9866,DS-c329a305-912c-4212-aa22-315d23748bb0,DISK]]
+5. BP-259154433-172.21.0.2-1791771762933:blk_1073741837_1013 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.5:9866,DS-2102a858-8c8c-43a6-afe0-d98bf6d2a452,DISK], DatanodeInfoWithStorage[172.21.0.4:9866,DS-c329a305-912c-4212-aa22-315d23748bb0,DISK]]
+6. BP-259154433-172.21.0.2-1791771762933:blk_1073741838_1014 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.3:9866,DS-239350d2-5cfb-4301-9894-6f64ce06e180,DISK], DatanodeInfoWithStorage[172.21.0.4:9866,DS-c329a305-912c-4212-aa22-315d23748bb0,DISK]]
+7. BP-259154433-172.21.0.2-1791771762933:blk_1073741839_1015 len=134217728 Live_repl=2  [DatanodeInfoWithStorage[172.21.0.5:9866,DS-2102a858-8c8c-43a6-afe0-d98bf6d2a452,DISK], DatanodeInfoWithStorage[172.21.0.4:9866,DS-c329a305-912c-4212-aa22-315d23748bb0,DISK]]
+
+
+Status: HEALTHY
+ Number of data-nodes:	3
+ Number of racks:		1
+ Total dirs:			1
+ Total symlinks:		0
+
+Replicated Blocks:
+ Total size:	1073741824 B
+ Total files:	1
+ Total blocks (validated):	8 (avg. block size 134217728 B)
+ Minimally replicated blocks:	8 (100.0 %)
+ Over-replicated blocks:	0 (0.0 %)
+ Under-replicated blocks:	0 (0.0 %)
+ Mis-replicated blocks:		0 (0.0 %)
+ Default replication factor:	2
+ Average block replication:	2.0
+ Missing blocks:		0
+ Corrupt blocks:		0
+ Missing replicas:		0 (0.0 %)
+ Blocks queued for replication:	0
+
+Erasure Coded Block Groups:
+ Total size:	0 B
+ Total files:	0
+ Total block groups (validated):	0
+ Minimally erasure-coded block groups:	0
+ Over-erasure-coded block groups:	0
+ Under-erasure-coded block groups:	0
+ Unsatisfactory placement block groups:	0
+ Average block group size:	0.0
+ Missing block groups:		0
+ Corrupt block groups:		0
+ Missing internal blocks:	0
+ Blocks queued for replication:	0
+FSCK ended at Mon Oct 12 02:45:16 UTC 2026 in 7 milliseconds
+
+
+The filesystem under path '/grupo03/dataset_1GB' is HEALTHY

@@ -1,0 +1,7 @@
+Grupo 03 - LG14
+Evidencia: Versiones de Docker y Docker Compose
+Comando: docker version --format "Docker {{.Server.Version}}" && docker compose version
+Fecha: 2026-10-11 14:14:05 (UTC-4)
+----------------------------------------------------------------------
+Docker 29.6.1
+Docker Compose version v5.3.0

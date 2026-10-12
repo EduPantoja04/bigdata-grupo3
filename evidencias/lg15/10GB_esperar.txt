@@ -1,0 +1,31 @@
+GRUPO 03 - LG15 - Dataset 10GB - Momento: esperar - 2026-10-12 03:13:30
+
+Monitoreo cada 5 s hasta que no queden bloques subreplicados (Ctrl+C para cortar)
+03:13:36  +6s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:13:48  +18s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:13:59  +29s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:14:09  +39s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:14:20  +50s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:14:31  +61s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:14:42  +72s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:14:52  +82s  vivos=3 muertos=0 subreplicados=0 replicas_en_nodo_caido=0
+03:15:03  +93s  vivos=2 muertos=1 subreplicados=0 replicas_en_nodo_caido=80
+03:15:14  +104s  vivos=2 muertos=1 subreplicados=0 replicas_en_nodo_caido=80
+03:15:25  +115s  vivos=2 muertos=1 subreplicados=77 replicas_en_nodo_caido=0
+03:15:37  +127s  vivos=2 muertos=1 subreplicados=70 replicas_en_nodo_caido=0
+03:15:48  +138s  vivos=2 muertos=1 subreplicados=64 replicas_en_nodo_caido=0
+03:15:59  +149s  vivos=2 muertos=1 subreplicados=60 replicas_en_nodo_caido=0
+03:16:10  +160s  vivos=2 muertos=1 subreplicados=55 replicas_en_nodo_caido=0
+03:16:22  +172s  vivos=2 muertos=1 subreplicados=47 replicas_en_nodo_caido=0
+03:16:33  +183s  vivos=2 muertos=1 subreplicados=43 replicas_en_nodo_caido=0
+03:16:44  +194s  vivos=2 muertos=1 subreplicados=39 replicas_en_nodo_caido=0
+03:16:55  +205s  vivos=2 muertos=1 subreplicados=32 replicas_en_nodo_caido=0
+03:17:05  +215s  vivos=2 muertos=1 subreplicados=26 replicas_en_nodo_caido=0
+03:17:16  +226s  vivos=2 muertos=1 subreplicados=20 replicas_en_nodo_caido=0
+03:17:28  +238s  vivos=2 muertos=1 subreplicados=15 replicas_en_nodo_caido=0
+03:17:38  +248s  vivos=2 muertos=1 subreplicados=13 replicas_en_nodo_caido=0
+03:17:49  +259s  vivos=2 muertos=1 subreplicados=5 replicas_en_nodo_caido=0
+03:18:00  +270s  vivos=2 muertos=1 subreplicados=0 replicas_en_nodo_caido=0
+
+DataNode declarado muerto a los 93 s del inicio del monitoreo
+Recuperacion completa a los 270 s del inicio del monitoreo

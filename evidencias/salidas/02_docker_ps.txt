@@ -1,0 +1,13 @@
+Grupo 03 - LG14
+Evidencia: Contenedores del cluster en ejecucion (Paso 6)
+Comando: docker ps --filter network=hadoop_network --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+Fecha: 2026-10-11 14:14:06 (UTC-4)
+----------------------------------------------------------------------
+NAMES             IMAGE                                STATUS                    PORTS
+historyserver     hadoop-environment-historyserver     Up 59 minutes (healthy)   0.0.0.0:8188->8188/tcp, [::]:8188->8188/tcp
+nodemanager1      hadoop-environment-nodemanager1      Up 59 minutes (healthy)   0.0.0.0:8042->8042/tcp, [::]:8042->8042/tcp
+resourcemanager   hadoop-environment-resourcemanager   Up 59 minutes (healthy)   0.0.0.0:8089->8088/tcp, [::]:8089->8088/tcp
+datanode2         hadoop-environment-datanode2         Up 59 minutes (healthy)   9864/tcp
+datanode3         hadoop-environment-datanode3         Up 59 minutes (healthy)   9864/tcp
+datanode1         hadoop-environment-datanode1         Up 59 minutes (healthy)   9864/tcp
+namenode          hadoop-environment-namenode          Up 59 minutes (healthy)   0.0.0.0:8020->8020/tcp, [::]:8020->8020/tcp, 0.0.0.0:9870->9870/tcp, [::]:9870->9870/tcp

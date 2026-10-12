@@ -1,0 +1,3 @@
+Grupo 03 - LG14
+Prueba funcional de HDFS con hadoop-environment
+Integrantes: Pantoja, Antezana, Escalera
