@@ -1,3 +1,4 @@
+GRUPO 03 - Replicas por DataNode del dataset de 1 GB antes de la falla (conteo de 1GB_02_antes_fsck.txt)
       6 172.21.0.3:9866
       6 172.21.0.4:9866
       4 172.21.0.5:9866

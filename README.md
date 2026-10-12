@@ -404,6 +404,10 @@ un minuto después de detener `datanode2`:
 
 - El NameNode todavía lo listaba como vivo (`Live datanodes (3)`), pero su `Last contact` quedó congelado
   en 02:44:08 mientras los otros dos se actualizaban. Todavía no se cumplían los 90 s para declararlo muerto.
+- Por eso `fsck` todavía mostraba `HEALTHY` con 0 bloques subreplicados
+  ([`1GB_05`](evidencias/lg15/1GB_05_durante_fsck.txt)). Los bloques subreplicados del dataset de 1 GB y
+  su re-replicación quedaron registrados en la medición de la sección 8.6
+  ([`1GB_esperar`](evidencias/lg15/1GB_esperar.txt)): 7 subreplicados a los 115 s, que bajan hasta 0 a los 270 s.
 - La lectura del archivo funcionó y el md5 coincidió. El log del cliente muestra cómo se salta el nodo caído:
 
 ```text
@@ -491,6 +495,10 @@ pruebas anteriores, las réplicas quedaron en `datanode2` y `datanode3`. La capt
 antes de cargar los datasets.
 
 ![DataNodes antes de la falla](evidencias/capturas/06_lg15_datanodes_antes_falla.png)
+
+En el Overview, `Live Nodes: 3`, `Dead Nodes: 0` y `Number of Under-Replicated Blocks: 0`:
+
+![Overview antes de la falla](evidencias/capturas/07_lg15_overview_antes_falla.png)
 
 **Durante la falla:** `datanode2` (172.21.0.4) aparece en rojo, como caído:
 
@@ -612,10 +620,10 @@ las dos condiciones. Mientras no se cumple el factor, una segunda falla sí podr
 | Número de bloques | 8 de 128 MB | 80 de 128 MB |
 | Factor de replicación | 2 (16 réplicas en total) | 2 (160 réplicas en total) |
 | DataNode afectado | `datanode2` (172.21.0.4) | `datanode2` (172.21.0.4) |
-| Bloques afectados | 6 de 8 (75 %) | 56 de 80 (70 %) |
+| Bloques afectados | 6 de 8 (75 %) en la prueba principal; 8 de 8 en la repetición de la sección 8.6 | 56 de 80 (70 %) en la prueba principal; 80 de 80 en la repetición de la sección 8.6 |
 | Bloques disponibles después de la falla | 8 de 8 (0 perdidos) | 80 de 80 (0 perdidos) |
 | ¿Archivo accesible? | Sí, md5 idéntico (lectura de 7 s) | Sí, md5 idéntico (lectura de 38–45 s) |
-| ¿Existieron bloques subreplicados? | Sí: 7 en la medición de la sección 8.6 | Sí: 50 (62,5 %) a los 2 min; 77 en la medición |
+| ¿Existieron bloques subreplicados? | Sí: hasta 7 de 8 en la repetición de la sección 8.6 (`1GB_esperar.txt`), en cuanto el NameNode descontó las réplicas del nodo muerto | Sí: 50 (62,5 %) a los 2 min en la prueba principal; hasta 77 de 80 en la repetición de la sección 8.6 |
 | Tiempo de recuperación | Detección a los 93 s y recuperación completa a los 270 s, compartiendo la cola con el dataset de 10 GB (solo habría tardado ~15 s tras la detección, estimado) | Detección a los 93 s y recuperación completa a los 270 s (4 min 30 s) |
 | Nuevas réplicas | 6: 2 en `datanode1` y 4 en `datanode3` | 56: 32 en `datanode1` y 24 en `datanode3` |
 

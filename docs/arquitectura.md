@@ -1,9 +1,13 @@
-# Arquitectura de hadoop-environment (Grupo 03 - LG14)
+# Arquitectura de hadoop-environment (Grupo 03 - LG14 y LG15)
 
 Este documento describe la arquitectura **real** del repositorio
 [spraharaj-projects/hadoop-environment](https://github.com/spraharaj-projects/hadoop-environment),
 tal como quedó desplegada por el grupo. Los datos (IPs, nombres de volúmenes, procesos) salen de
-las evidencias en [`evidencias/salidas/`](../evidencias/salidas/).
+las evidencias en [`evidencias/salidas/`](../evidencias/salidas/) y [`evidencias/lg15/`](../evidencias/lg15/).
+
+La infraestructura es la misma en las dos prácticas. Para LG15 solo cambió `hdfs-site.xml`
+(factor de replicación **2** y detección de DataNodes muertos en **90 s**); el detalle está en la
+sección [Configuración de LG15](#configuración-de-lg15-replicación-y-tolerancia-a-fallos).
 
 ## Diagrama
 
@@ -158,7 +162,7 @@ configuración real está en los archivos de `conf/`, que se copian a la imagen 
 | Archivo | Propiedades principales |
 |---|---|
 | [`conf/core-site.xml`](../hadoop-environment/conf/core-site.xml) | `fs.defaultFS = hdfs://namenode:8020`, usuario web `root`, códec Snappy |
-| [`conf/hdfs-site.xml`](../hadoop-environment/conf/hdfs-site.xml) | Directorios de NameNode y DataNode, WebHDFS activo, permisos desactivados, `bind-host = 0.0.0.0`, uso de hostnames entre DataNodes. **No define `dfs.replication`**, así que se usa el valor por defecto: **3**. El tamaño de bloque también es el por defecto: **128 MB**. |
+| [`conf/hdfs-site.xml`](../hadoop-environment/conf/hdfs-site.xml) | Directorios de NameNode y DataNode, WebHDFS activo, permisos desactivados, `bind-host = 0.0.0.0`, uso de hostnames entre DataNodes. Para LG15: `dfs.replication = 2` y `dfs.namenode.heartbeat.recheck-interval = 30000`. En LG14 no se definía `dfs.replication` y se usaba el valor por defecto (**3**). El tamaño de bloque es el por defecto: **128 MB**. |
 | [`conf/yarn-site.xml`](../hadoop-environment/conf/yarn-site.xml) | ResourceManager en `resourcemanager`, recuperación con estado en HDFS (`/rmstate`), Capacity Scheduler, Timeline Service en `historyserver`, NodeManager declarado con 16 GB y 8 vCores, logs agregados en `/app-logs` |
 | [`conf/mapred-site.xml`](../hadoop-environment/conf/mapred-site.xml) | MapReduce sobre YARN, memoria de map (4 GB) y reduce (8 GB), `HADOOP_MAPRED_HOME` |
 | [`Dockerfile`](../hadoop-environment/Dockerfile) | Imagen base: JDK 11 (Temurin) + Python 3.11 (Debian 12) + Hadoop 3.3.6 + copia de `conf/` |
@@ -172,8 +176,81 @@ configuración real está en los archivos de `conf/`, que se copian a la imagen 
   correr DataNode y NodeManager a la vez.
 - **El NodeManager no comparte contenedor con ningún DataNode.** Por eso, al ejecutar MapReduce, no hay
   localidad de datos: las tareas siempre leen los bloques por red.
-- **3 DataNodes con replicación 3.** Cada bloque se copia en los tres nodos (se ve en
-  `11_hdfs_fsck_registro.txt`: `Live_repl=3` en 172.21.0.3, .4 y .5). Si un DataNode cae, no queda
-  ningún nodo libre donde reponer la réplica que falta; esto es importante para LG15.
+- **3 DataNodes con replicación 3 en LG14.** Cada bloque se copiaba en los tres nodos (se ve en
+  `11_hdfs_fsck_registro.txt`: `Live_repl=3` en 172.21.0.3, .4 y .5). Si un DataNode caía, no quedaba
+  ningún nodo libre donde reponer la réplica que faltaba. Por eso en LG15 se bajó el factor a 2.
 - **Recursos declarados mayores que los reales.** `yarn-site.xml` anuncia 16 GB y 8 vCores para el único
   NodeManager, sin importar la memoria real de Docker Desktop.
+
+## Configuración de LG15: replicación y tolerancia a fallos
+
+| Propiedad (`hdfs-site.xml`) | Valor | Efecto |
+|---|---|---|
+| `dfs.replication` | `2` | Cada bloque de 128 MB tiene 2 réplicas en DataNodes distintos. Con 3 DataNodes, si uno cae siempre queda un nodo vivo sin ese bloque donde reponer la réplica |
+| `dfs.namenode.heartbeat.recheck-interval` | `30000` (30 s) | Un DataNode se declara muerto tras `2 × 30 s + 10 × 3 s` = **90 s** sin heartbeats (por defecto serían 10,5 min) |
+
+Estructura en HDFS usada en LG15:
+
+```text
+/grupo03/
+├── dataset_1GB/dataset_grupo03_1GB      1 GB  →  8 bloques × 2 réplicas
+├── dataset_10GB/dataset_grupo03_10GB    10 GB → 80 bloques × 2 réplicas
+├── resultados/                          resúmenes finales de las pruebas
+└── evidencias/                          salidas de comandos y capturas
+```
+
+### Diagrama de la prueba de fallo
+
+Ejemplo con dos bloques reales del dataset de 1 GB
+([`1GB_02_antes_fsck.txt`](../evidencias/lg15/1GB_02_antes_fsck.txt) y
+[`1GB_despues.txt`](../evidencias/lg15/1GB_despues.txt)). El bloque 0 tenía sus réplicas en
+`datanode2` y `datanode1`; el bloque 5, en `datanode3` y `datanode2`.
+
+```mermaid
+flowchart LR
+    subgraph ANTES["1. Antes de la falla"]
+        direction TB
+        A_NN["namenode<br/>mapa de bloques"]
+        A_DN1["datanode1<br/>blk 0"]
+        A_DN2["datanode2<br/>blk 0 · blk 5"]
+        A_DN3["datanode3<br/>blk 5"]
+        A_DN1 -- heartbeat 3 s --> A_NN
+        A_DN2 -- heartbeat 3 s --> A_NN
+        A_DN3 -- heartbeat 3 s --> A_NN
+    end
+
+    subgraph DURANTE["2. docker stop datanode2"]
+        direction TB
+        D_NN["namenode<br/>90 s sin heartbeat:<br/>datanode2 = Dead<br/>blk 0 y blk 5 subreplicados"]
+        D_DN1["datanode1<br/>blk 0"]
+        D_DN2["datanode2<br/>DETENIDO"]
+        D_DN3["datanode3<br/>blk 5"]
+        D_DN1 --> D_NN
+        D_DN3 --> D_NN
+        D_DN2 -. sin heartbeat .-> D_NN
+    end
+
+    subgraph DESPUES["3. Re-replicación automática"]
+        direction TB
+        R_NN["namenode<br/>ordena las copias"]
+        R_DN1["datanode1<br/>blk 0 · blk 5"]
+        R_DN3["datanode3<br/>blk 0 · blk 5"]
+        R_NN -. orden .-> R_DN1
+        R_NN -. orden .-> R_DN3
+        R_DN1 -- "copia blk 0 (128 MB)" --> R_DN3
+        R_DN3 -- "copia blk 5 (128 MB)" --> R_DN1
+    end
+
+    ANTES --> DURANTE --> DESPUES
+```
+
+- **Lectura durante la falla.** El cliente pide al NameNode las ubicaciones de cada bloque y lee
+  directamente de los DataNodes. Si la réplica de `datanode2` no responde, usa la otra; por eso el md5
+  del archivo nunca cambió.
+- **Re-replicación.** La decide el NameNode: con 3 nodos, factor 2 y uno caído, el destino es siempre
+  el único nodo vivo que no tiene el bloque. La copia la hacen los DataNodes entre sí por el puerto 9866.
+- **Restauración.** Al volver `datanode2`, sus réplicas antiguas sobran (3 copias) y el NameNode borra
+  las sobrantes. HDFS no rebalancea automáticamente; para eso existe `hdfs balancer`.
+
+Los resultados completos (bloques afectados, tiempos y nuevas réplicas) están en la sección 8 del
+[README](../README.md#8-lg15--tolerancia-a-fallos-y-replicación-de-datos-en-hdfs).
